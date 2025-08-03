@@ -162,9 +162,9 @@ Superior_Tab_Mute/
 ---
 
 <div align="center">
-
-Like the extension? Give it a star on GitHub to show your support!
-
-© badrenton 2025
-
+  
+  **Made with ❤️ by badrenton**
+  
+  *© 2025 • If you find this extension helpful, please consider giving it a ⭐ on GitHub!*
+  
 </div>
