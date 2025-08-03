@@ -1,9 +1,3 @@
-Конечно. Я обновил файловую структуру, включив в нее все иконки, и перефразировал заключительную надпись.
-
-Вот обновленный `README.md`.
-
----
-
 # Superior Tab Mute
 
 **Advanced Chrome Extension for Intelligent Audio Control**
