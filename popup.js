@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const qs = sel => document.querySelector(sel);
-    const manifest = chrome.runtime.getManifest();
-
-    const locales = {
+    const MANIFEST = chrome.runtime.getManifest();
+    const LOCALES = {
         en: {
             masterToggle: '❌ / ✔️',
             muteAll: '🔇 Mute All Tabs',
@@ -12,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
             selectTabToUnmute: 'Select a Tab to Unmute:',
             showAllTabs: 'Show all tabs',
             refreshSource: '🎵 Current Tab 🠆 SOURCE',
-            noTabs: 'No tabs found.',
+            noTabs: 'No manageable tabs found.',
             noSoundSource: 'No sound source designated.',
             sourceClosed: 'Source tab has been closed.',
             sourcePrefix: 'SOURCE:',
@@ -35,29 +33,59 @@ document.addEventListener('DOMContentLoaded', () => {
             github: 'Страница на GitHub'
         }
     };
+    let currentLanguage = localStorage.getItem('stm_lang') || 'en';
 
-    let currentLang = localStorage.getItem('stm_lang') || 'en';
-    const t = key => locales[currentLang][key] || locales.en[key];
+    const DOM = {
+        controlsWrapper: document.getElementById('controls-wrapper'),
+        firstSoundControls: document.getElementById('first-sound-controls'),
+        whitelistControls: document.getElementById('whitelist-controls'),
+        masterToggle: document.getElementById('master-toggle-switch'),
+        muteAllToggle: document.getElementById('mute-all-toggle-switch'),
+        modeForm: document.getElementById('mode-form'),
+        refreshSourceBtn: document.getElementById('refresh-first-sound-btn'),
+        showAllTabsFirstSound: document.getElementById('show-all-tabs-first-sound'),
+        showAllTabsWhitelist: document.getElementById('show-all-tabs-whitelist'),
+        firstSoundTabsList: document.getElementById('first-sound-tabs-list'),
+        audibleTabsList: document.getElementById('audible-tabs-list'),
+        soundSourceDisplay: document.getElementById('current-sound-source-display'),
+        langEnBtn: document.getElementById('lang-en'),
+        langRuBtn: document.getElementById('lang-ru'),
+        versionInfo: document.getElementById('version-info'),
+        authorInfo: document.getElementById('author-info'),
+        githubLink: document.getElementById('github-link'),
+    };
 
-    const controlsWrapper = qs('#controls-wrapper');
-    const firstSoundControls = qs('#first-sound-controls');
-    const whitelistControls = qs('#whitelist-controls');
+    const getLocaleString = (key) => LOCALES[currentLanguage][key] || LOCALES.en[key];
 
-    function localizeUI() {
+    const applyLocalization = () => {
         document.querySelectorAll('[data-locale]').forEach(el => {
-            el.textContent = t(el.dataset.locale);
+            el.textContent = getLocaleString(el.dataset.locale);
         });
-        qs('#version-info').textContent = `${manifest.name} v${manifest.version}`;
-        qs('#author-info').textContent = `${t('by')} badrenton`;
-        qs('#github-link').textContent = t('github');
-    }
+        DOM.versionInfo.textContent = `${MANIFEST.name} v${MANIFEST.version}`;
+        DOM.authorInfo.textContent = `${getLocaleString('by')} badrenton`;
+        DOM.githubLink.textContent = getLocaleString('github');
+    };
 
-    function renderTabsList({ container, tabs, selectedId }) {
+    const setupMarqueeForList = (listElement) => {
+        const listItems = listElement.querySelectorAll('.tab-list-item');
+        listItems.forEach(item => {
+            const wrapper = item.querySelector('.tab-title-wrapper');
+            const title = item.querySelector('.tab-list-title');
+            if (!wrapper || !title) return;
+
+            if (title.scrollWidth > wrapper.clientWidth) {
+                const offset = wrapper.clientWidth - title.scrollWidth - 10;
+                title.style.setProperty('--marquee-end-x', `${offset}px`);
+            }
+        });
+    };
+
+    const renderTabsList = ({ container, tabs, selectedId }) => {
         container.innerHTML = '';
         if (tabs.length === 0) {
             const li = document.createElement('li');
             li.className = 'tab-list-item no-sound';
-            li.textContent = t('noTabs');
+            li.textContent = getLocaleString('noTabs');
             container.appendChild(li);
             return;
         }
@@ -67,24 +95,31 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.className = 'tab-list-item';
             li.dataset.tabId = tab.id;
+            if (tab.id === selectedId) li.classList.add('selected');
 
             const img = document.createElement('img');
             img.className = 'tab-list-icon';
             img.src = tab.favIconUrl || 'icons/icon16.png';
             img.alt = '';
+            
+            const titleWrapper = document.createElement('div');
+            titleWrapper.className = 'tab-title-wrapper';
 
             const span = document.createElement('span');
+            span.className = 'tab-list-title';
             span.textContent = tab.title || 'Untitled Tab';
 
-            li.appendChild(img);
-            li.appendChild(span);
-            if (tab.id === selectedId) li.classList.add('selected');
+            titleWrapper.appendChild(span);
+            li.append(img, titleWrapper);
+
             fragment.appendChild(li);
         });
         container.appendChild(fragment);
-    }
 
-    async function setupTabListSection({ listElem, showAllCheckbox, storageKey, showAllKey, onSelect }) {
+        setupMarqueeForList(container);
+    };
+
+    const populateTabList = async ({ listElem, showAllCheckbox, storageKey, showAllKey, onSelect }) => {
         const { [storageKey]: selectedId } = await chrome.storage.session.get(storageKey);
         const showAll = localStorage.getItem(showAllKey) === 'true';
         showAllCheckbox.checked = showAll;
@@ -94,149 +129,137 @@ document.addEventListener('DOMContentLoaded', () => {
 
         listElem.onclick = (e) => {
             const li = e.target.closest('.tab-list-item:not(.no-sound)');
-            if (!li?.dataset.tabId) return;
-            onSelect(parseInt(li.dataset.tabId, 10));
+            if (li?.dataset.tabId) onSelect(parseInt(li.dataset.tabId, 10));
         };
 
         renderTabsList({ container: listElem, tabs, selectedId });
-    }
+    };
 
-    async function setupFirstSoundControls() {
+    const updateFirstSoundDisplay = async () => {
         const { firstAudibleTabId } = await chrome.storage.session.get('firstAudibleTabId');
-        const display = qs('#current-sound-source-display');
-        display.className = 'current-sound-source-display';
+        DOM.soundSourceDisplay.className = 'current-sound-source-display';
 
-        if (firstAudibleTabId) {
-            try {
-                const tab = await chrome.tabs.get(firstAudibleTabId);
-                display.innerHTML = `<img src="${tab.favIconUrl || 'icons/icon16.png'}" class="tab-list-icon" alt=""><span>${t('sourcePrefix')} ${tab.title}</span>`;
-                display.classList.add('active');
-            } catch (error) {
-                display.textContent = t('sourceClosed');
-                display.classList.add('error');
-            }
-        } else {
-            display.textContent = t('noSoundSource');
+        if (!firstAudibleTabId) {
+            DOM.soundSourceDisplay.textContent = getLocaleString('noSoundSource');
+            return;
         }
 
-        await setupTabListSection({
-            listElem: qs('#first-sound-tabs-list'),
-            showAllCheckbox: qs('#show-all-tabs-first-sound'),
-            storageKey: 'firstAudibleTabId',
-            showAllKey: 'showAllTabsFirstSound',
-            onSelect: tabId => chrome.storage.session.set({ firstAudibleTabId: tabId })
-        });
-    }
+        try {
+            const tab = await chrome.tabs.get(firstAudibleTabId);
+            DOM.soundSourceDisplay.innerHTML = `<img src="${tab.favIconUrl || 'icons/icon16.png'}" class="tab-list-icon" alt=""><span class="source-display-title">${getLocaleString('sourcePrefix')} ${tab.title}</span>`;
+            DOM.soundSourceDisplay.classList.add('active');
 
-    async function setupWhitelistControls() {
-        await setupTabListSection({
-            listElem: qs('#audible-tabs-list'),
-            showAllCheckbox: qs('#show-all-tabs-whitelist'),
-            storageKey: 'whitelistedTabId',
-            showAllKey: 'showAllTabsWhitelist',
-            onSelect: tabId => chrome.storage.session.set({ whitelistedTabId: tabId })
-        });
-    }
-
-    function updateUIVisibility(mode) {
-        firstSoundControls.classList.toggle('hidden', mode !== 'first-sound');
-        whitelistControls.classList.toggle('hidden', mode !== 'whitelist');
-
-        if (mode === 'first-sound') setupFirstSoundControls();
-        else if (mode === 'whitelist') setupWhitelistControls();
-    }
-
-    function attachEventListeners() {
-        qs('#master-toggle-switch').addEventListener('change', e => {
-            chrome.storage.sync.set({ isExtensionEnabled: e.target.checked });
-        });
-
-        qs('#mute-all-toggle-switch').addEventListener('change', e => {
-            chrome.storage.sync.set({ isAllMuted: e.target.checked });
-        });
-
-        qs('#mode-form').addEventListener('change', e => {
-            if (e.target.name === 'mode') {
-                chrome.storage.sync.set({ mode: e.target.value });
+            const titleElement = DOM.soundSourceDisplay.querySelector('.source-display-title');
+            if (titleElement) {
+                if (titleElement.scrollWidth > titleElement.clientWidth) {
+                    titleElement.classList.add('has-overflow');
+                } else {
+                    titleElement.classList.remove('has-overflow');
+                }
             }
-        });
+        } catch (error) {
+            DOM.soundSourceDisplay.textContent = getLocaleString('sourceClosed');
+            DOM.soundSourceDisplay.classList.add('error');
+        }
+    };
+    
+    const refreshFirstSoundList = () => populateTabList({
+        listElem: DOM.firstSoundTabsList,
+        showAllCheckbox: DOM.showAllTabsFirstSound,
+        storageKey: 'firstAudibleTabId',
+        showAllKey: 'showAllTabsFirstSound',
+        onSelect: tabId => chrome.storage.session.set({ firstAudibleTabId: tabId })
+    });
 
-        qs('#refresh-first-sound-btn').addEventListener('click', async () => {
+    const refreshWhitelist = () => populateTabList({
+        listElem: DOM.audibleTabsList,
+        showAllCheckbox: DOM.showAllTabsWhitelist,
+        storageKey: 'whitelistedTabId',
+        showAllKey: 'showAllTabsWhitelist',
+        onSelect: tabId => chrome.storage.session.set({ whitelistedTabId: tabId })
+    });
+
+    const updateControlSectionsVisibility = (mode) => {
+        DOM.firstSoundControls.classList.toggle('hidden', mode !== 'first-sound');
+        DOM.whitelistControls.classList.toggle('hidden', mode !== 'whitelist');
+
+        if (mode === 'first-sound') {
+            updateFirstSoundDisplay();
+            refreshFirstSoundList();
+        } else if (mode === 'whitelist') {
+            refreshWhitelist();
+        }
+    };
+
+    const switchLanguage = (lang) => {
+        currentLanguage = lang;
+        localStorage.setItem('stm_lang', lang);
+        DOM.langEnBtn.classList.toggle('active', lang === 'en');
+        DOM.langRuBtn.classList.toggle('active', lang === 'ru');
+        applyLocalization();
+        const currentMode = document.querySelector('input[name="mode"]:checked').value;
+        updateControlSectionsVisibility(currentMode);
+    };
+
+    const bindEventListeners = () => {
+        DOM.masterToggle.addEventListener('change', e => chrome.storage.sync.set({ isExtensionEnabled: e.target.checked }));
+        DOM.muteAllToggle.addEventListener('change', e => chrome.storage.sync.set({ isAllMuted: e.target.checked }));
+        DOM.modeForm.addEventListener('change', e => { if (e.target.name === 'mode') chrome.storage.sync.set({ mode: e.target.value }); });
+        DOM.refreshSourceBtn.addEventListener('click', async () => {
             const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            if (activeTab) {
-                await chrome.storage.session.set({ firstAudibleTabId: activeTab.id });
-            }
+            if (activeTab) chrome.storage.session.set({ firstAudibleTabId: activeTab.id });
         });
-
-        qs('#show-all-tabs-first-sound').addEventListener('change', e => {
+        DOM.showAllTabsFirstSound.addEventListener('change', e => {
             localStorage.setItem('showAllTabsFirstSound', e.target.checked);
-            setupFirstSoundControls();
+            refreshFirstSoundList();
         });
-
-        qs('#show-all-tabs-whitelist').addEventListener('change', e => {
+        DOM.showAllTabsWhitelist.addEventListener('change', e => {
             localStorage.setItem('showAllTabsWhitelist', e.target.checked);
-            setupWhitelistControls();
+            refreshWhitelist();
         });
+        DOM.langEnBtn.addEventListener('click', () => switchLanguage('en'));
+        DOM.langRuBtn.addEventListener('click', () => switchLanguage('ru'));
 
-        qs('.lang-switcher').addEventListener('click', e => {
-            const btn = e.target.closest('.lang-btn');
-            if (btn) {
-                switchLanguage(btn.id === 'lang-ru' ? 'ru' : 'en');
-            }
-        });
-
-        chrome.storage.onChanged.addListener((changes) => {
-            const currentMode = qs('input[name="mode"]:checked')?.value;
+        chrome.storage.onChanged.addListener((changes, area) => {
             if (changes.isExtensionEnabled) {
-                const isEnabled = changes.isExtensionEnabled.newValue;
-                qs('#master-toggle-switch').checked = isEnabled;
-                controlsWrapper.classList.toggle('disabled', !isEnabled);
+                DOM.masterToggle.checked = changes.isExtensionEnabled.newValue;
+                DOM.controlsWrapper.classList.toggle('disabled', !changes.isExtensionEnabled.newValue);
             }
             if (changes.isAllMuted) {
-                qs('#mute-all-toggle-switch').checked = changes.isAllMuted.newValue;
+                DOM.muteAllToggle.checked = changes.isAllMuted.newValue;
             }
             if (changes.mode) {
                 const newMode = changes.mode.newValue;
-                qs(`input[name="mode"][value="${newMode}"]`).checked = true;
-                updateUIVisibility(newMode);
+                document.querySelector(`input[name="mode"][value="${newMode}"]`).checked = true;
+                updateControlSectionsVisibility(newMode);
             }
-            if (changes.whitelistedTabId && currentMode === 'whitelist') {
-                setupWhitelistControls();
+            if (changes.whitelistedTabId && document.querySelector('input[name="mode"]:checked').value === 'whitelist') {
+                refreshWhitelist();
             }
-            if (changes.firstAudibleTabId && currentMode === 'first-sound') {
-                setupFirstSoundControls();
+            if (changes.firstAudibleTabId && document.querySelector('input[name="mode"]:checked').value === 'first-sound') {
+                updateFirstSoundDisplay();
+                refreshFirstSoundList();
             }
         });
-    }
+    };
 
-    function switchLanguage(lang) {
-        currentLang = lang;
-        localStorage.setItem('stm_lang', lang);
-        qs('#lang-en').classList.toggle('active', lang === 'en');
-        qs('#lang-ru').classList.toggle('active', lang === 'ru');
-        localizeUI();
-        updateUIVisibility(qs('input[name="mode"]:checked').value);
-    }
+    const initialize = async () => {
+        const settings = await chrome.storage.sync.get({ mode: 'active', isExtensionEnabled: true, isAllMuted: false });
+        
+        DOM.masterToggle.checked = settings.isExtensionEnabled;
+        DOM.muteAllToggle.checked = settings.isAllMuted;
+        DOM.controlsWrapper.classList.toggle('disabled', !settings.isExtensionEnabled);
+        document.querySelector(`input[name="mode"][value="${settings.mode}"]`).checked = true;
 
-    async function init() {
-        const settings = await chrome.storage.sync.get({
-            mode: 'active',
-            isExtensionEnabled: true,
-            isAllMuted: false
-        });
+        DOM.langEnBtn.classList.toggle('active', currentLanguage === 'en');
+        DOM.langRuBtn.classList.toggle('active', currentLanguage === 'ru');
 
-        qs('#master-toggle-switch').checked = settings.isExtensionEnabled;
-        qs('#mute-all-toggle-switch').checked = settings.isAllMuted;
-        controlsWrapper.classList.toggle('disabled', !settings.isExtensionEnabled);
-        qs(`input[name="mode"][value="${settings.mode}"]`).checked = true;
+        applyLocalization();
+        updateControlSectionsVisibility(settings.mode);
+        bindEventListeners();
+        
+        document.body.style.opacity = 1;
+    };
 
-        qs('#lang-en').classList.toggle('active', currentLang === 'en');
-        qs('#lang-ru').classList.toggle('active', currentLang === 'ru');
-
-        localizeUI();
-        attachEventListeners();
-        updateUIVisibility(settings.mode);
-    }
-
-    init();
+    initialize();
 });
