@@ -8,10 +8,7 @@
 
 Superior Tab Mute provides sophisticated audio management for Chrome tabs, automatically muting tabs based on user-defined rules to reduce distractions and enhance focus. With multiple muting modes, intuitive controls, and a sleek interface, it’s ideal for work, streaming, or complex browsing workflows.
 
-<div align="center">
-
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue?logo=googlechrome)
-</div>
 
 ---
 
