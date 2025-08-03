@@ -1,14 +1,20 @@
 # Superior Tab Mute
 
-**Advanced Chrome Extension for Intelligent Audio Control**
+**Intelligent Audio Control for Chrome**
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/le0booba/Superior_Tab_Mute/refs/heads/main/screen-1.png" alt="Superior Tab Mute Screenshot" width="250"/>
+   <img src="https://raw.githubusercontent.com/le0booba/Superior_Tab_Mute/refs/heads/main/screen-1.png" alt="Superior Tab Mute Screenshot" width="230"/>
 </div>
 
-Superior Tab Mute provides sophisticated audio management for Chrome tabs, automatically muting tabs based on user-defined rules to reduce distractions and enhance focus. With multiple muting modes, intuitive controls, and a sleek interface, it’s ideal for work, streaming, or complex browsing workflows.
+Stop the audio chaos. Superior Tab Mute puts you in command of your browser's soundscape, automatically silencing background tabs based on simple, powerful rules. This creates a focused environment, perfect for concentrating on work, enjoying uninterrupted music, or isolating a single stream. With its smart muting modes, instant controls, and clean design, you can finally browse in peace.
+
+<div align="center">
 
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue?logo=googlechrome)
+![Manifest V3](https://img.shields.io/badge/Manifest-V3-brightgreen)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+
+</div>
 
 ---
 
@@ -137,6 +143,53 @@ Superior Tab Mute provides sophisticated audio management for Chrome tabs, autom
 
 ---
 
+## 🔧 Troubleshooting
+
+<details>
+<summary><strong>Problem: The extension isn't muting any tabs.</strong></summary>
+<blockquote>
+
+- **Check the Master Toggle**: Ensure the main toggle switch (❌ / ✔️) in the popup is enabled (✔️).
+- **Check Global Mute**: Make sure the "Mute All Tabs" switch is not overriding your selected mode.
+- **Reload the Extension**: Go to `chrome://extensions/`, find Superior Tab Mute, and click the refresh icon.
+- **Restart Chrome**: A simple restart can resolve temporary issues.
+
+</blockquote>
+</details>
+
+<details>
+<summary><strong>Problem: Keyboard shortcuts are not working.</strong></summary>
+<blockquote>
+
+- This is usually caused by a conflict with another extension or a Chrome internal shortcut.
+- **Solution**: Navigate to `chrome://extensions/shortcuts`. Find Superior Tab Mute and check if any of its shortcuts have a conflict warning. You can re-assign the shortcut to a different key combination on this page.
+
+</blockquote>
+</details>
+
+<details>
+<summary><strong>Problem: A specific tab is not behaving as expected.</strong></summary>
+<blockquote>
+
+- **Verify the Mode**: Double-check which mode is active. The behavior depends entirely on it.
+- **Re-select the Source**: In "Whitelist" or "First Sound" mode, try re-selecting the desired tab from the list. In "First Sound" mode, you can also use the **🎵 Current Tab 🠆 SOURCE** button to force an update.
+- **Reload the Tab**: The specific web page might be in an unusual state. Reloading the tab (F5 or Ctrl+R) often fixes this.
+
+</blockquote>
+</details>
+
+<details>
+<summary><strong>Problem: The popup interface seems frozen or isn't updating.</strong></summary>
+<blockquote>
+
+- **Re-open the Popup**: Simply click outside the popup to close it, then click the extension icon again.
+- **Reload the Extension**: If re-opening doesn't work, a full reload of the extension from `chrome://extensions/` will reset its state.
+
+</blockquote>
+</details>
+
+---
+
 ## 📁 File Structure
 
 ```
@@ -162,9 +215,8 @@ Superior_Tab_Mute/
 ---
 
 <div align="center">
-  
+   
   **Made with ❤️ by badrenton**
   
   *© 2025 • If you find this extension helpful, please consider giving it a ⭐ on GitHub!*
-  
 </div>
