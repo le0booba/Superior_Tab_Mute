@@ -336,7 +336,7 @@ h4 {
 .tab-list-title {
     display: inline-block;
     white-space: nowrap;
-    --marquee-end-x: 0px; 
+    --marquee-end-x: 0px;
 }
 
 .tab-list-item:hover .tab-title-wrapper {
