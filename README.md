@@ -186,22 +186,22 @@
 
 ```
 Superior_Tab_Mute/
-├── manifest.json
-├── background.js
-├── popup.html
-├── popup.js
-├── popup.css
-├── icons/
-│   ├── icon16.png
-│   ├── icon16_mute.png
-│   ├── icon16_off.png
-│   ├── icon48.png
-│   ├── icon48_mute.png
-│   ├── icon48_off.png
-│   ├── icon128.png
-│   ├── icon128_mute.png
-│   └── icon128_off.png
-└── README.md
+├── 📑 manifest.json         # Extension configuration and permissions
+├── 🔧 background.js         # Core muting logic and event handling
+├── ⚙️ popup.html            # The structure of the user interface
+├── ⚙️ popup.js              # UI logic and user interactions
+├── 🎨 popup.css             # Modern dark theme styling
+├── 🗁 icons/                # Extension status icons
+│   ├── 🖼️ icon16.png           # Default state
+│   ├── 🖼️ icon16_mute.png      # All tabs muted state
+│   ├── 🖼️ icon16_off.png       # Disabled state
+│   ├── 🖼️ icon48.png           # Default state
+│   ├── 🖼️ icon48_mute.png      # All tabs muted state
+│   ├── 🖼️ icon48_off.png       # Disabled state
+│   ├── 🖼️ icon128.png          # Default state
+│   ├── 🖼️ icon128_mute.png     # All tabs muted state
+│   └── 🖼️ icon128_off.png      # Disabled state
+└── 🖺 README.md             # This documentation
 ```
 
 ---
