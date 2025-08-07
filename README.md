@@ -37,6 +37,7 @@
 -   **Active Tab Mode**: Only the currently active tab plays audio, perfect for focused browsing or work.
 -   **First Sound Mode**: Prioritizes the first tab that plays audio, ideal for listening to music or podcasts in the background.
 -   **Whitelist Mode**: Manually select a single tab to play audio, offering precise control for complex workflows.
+-   **Mute New Tabs Mode**: Automatically mutes all newly opened tabs, keeping your session quiet by default.
 
 ### ⚡ Instant Controls
 
@@ -45,17 +46,9 @@
 -   **Set Sound Source**: Designate the current tab as the audio source in First Sound Mode (`Alt+Shift+E`).
 -   **Show All Tabs**: View and select from all available tabs, not just audible ones, in First Sound and Whitelist modes.
 
-<details>
-<summary>🔧 Customize Behavior</summary>
+### 🧠 Intelligent Automation
 
--   Toggle the extension on/off or mute all tabs using the switches in the popup or their dedicated shortcuts.
--   In "First Sound Mode," click the **🎵 Current Tab 🠆 SOURCE** button to instantly set the currently active tab as the new audio source.
--   Configure keyboard shortcuts at `chrome://extensions/shortcuts`:
-    -   `Alt+Shift+S`: Toggle extension on/off.
-    -   `Alt+Shift+M`: Mute/unmute all tabs.
-    -   `Alt+Shift+E`: Set current tab as sound source (in First Sound Mode).
-
-</details>
+-   **Remember Last Source**: When enabled for "First Sound" or "Whitelist" mode, the extension will automatically switch to the last tab that was playing audio if your current source tab goes silent or is closed. This ensures seamless listening without manual intervention.
 
 <details>
 <summary>🎨 User-Friendly Interface</summary>
@@ -84,8 +77,9 @@
     -   Click the Superior Tab Mute icon in Chrome’s toolbar to access the control panel.
 
 2.  **Select a Mode**
-    -   Choose your desired muting strategy: **Active Tab**, **First Sound**, or **Whitelist** mode using the radio buttons.
+    -   Choose your desired muting strategy: **Active Tab**, **First Sound**, **Whitelist**, or **Mute New Tabs** mode using the radio buttons.
     -   For "First Sound" or "Whitelist" modes, use the tab list to select your audio source. You can enable “Show all tabs” for more options.
+    -   When using "First Sound" or "Whitelist" modes, you can check the **"Remember last source"** box to enable automatic source switching if the original source stops playing sound.
 
 ---
 
@@ -110,8 +104,9 @@
 
 -   Settings stored in your Google account and synchronized across devices where you are signed into Chrome.
 -   **`isExtensionEnabled`** (true/false): Controls whether the extension is active.
--   **`mode`** ('active', 'first-sound', 'whitelist'): Defines the active muting mode.
+-   **`mode`** ('active', 'first-sound', 'whitelist', 'mute-new'): Defines the active muting mode.
 -   **`isAllMuted`** (true/false): Toggles the global mute state for all tabs.
+-   **`rememberLastTab`** (true/false): Remembers the preference for the "Remember Last Source" feature.
 -   *Purpose*: Ensures your core preferences are consistent across all your devices.
 
 </details>
@@ -122,6 +117,7 @@
 -   Temporary settings that are cleared when the browser is closed.
 -   **`firstAudibleTabId`** (tab ID): Tracks the designated audio source tab in "First Sound Mode".
 -   **`whitelistedTabId`** (tab ID): Tracks the user-selected tab in "Whitelist Mode".
+-   **`audibleHistory`** (array of tab IDs): Keeps a short history of tabs that have recently played audio, used by the "Remember Last Source" feature.
 -   *Purpose*: Tab IDs are unique to each browser session and would be invalid across devices or after a restart, making session storage the ideal choice.
 
 </details>
@@ -190,22 +186,22 @@
 
 ```
 Superior_Tab_Mute/
-├── 📑 manifest.json         # Extension configuration and permissions
-├── 🔧 background.js         # Core muting logic and event handling
-├── ⚙️ popup.html            # The structure of the user interface
-├── ⚙️ popup.js              # UI logic and user interactions
-├── 🎨 popup.css             # Modern dark theme styling
-├── 🗁 icons/                # Extension status icons
-│   ├── 🖼️ icon16.png           # Default state
-│   ├── 🖼️ icon16_mute.png      # All tabs muted state
-│   ├── 🖼️ icon16_off.png       # Disabled state
-│   ├── 🖼️ icon48.png           # Default state
-│   ├── 🖼️ icon48_mute.png      # All tabs muted state
-│   ├── 🖼️ icon48_off.png       # Disabled state
-│   ├── 🖼️ icon128.png          # Default state
-│   ├── 🖼️ icon128_mute.png     # All tabs muted state
-│   └── 🖼️ icon128_off.png      # Disabled state
-└── 🖺 README.md             # This documentation
+├── manifest.json
+├── background.js
+├── popup.html
+├── popup.js
+├── popup.css
+├── icons/
+│   ├── icon16.png
+│   ├── icon16_mute.png
+│   ├── icon16_off.png
+│   ├── icon48.png
+│   ├── icon48_mute.png
+│   ├── icon48_off.png
+│   ├── icon128.png
+│   ├── icon128_mute.png
+│   └── icon128_off.png
+└── README.md
 ```
 
 ---
