@@ -2,11 +2,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const MANIFEST = chrome.runtime.getManifest();
     const LOCALES = {
         en: {
-            masterToggle: '❌ / ✔️',
             muteAll: '🔇 Mute All Tabs',
-            modeActive: 'Mute all except active tab',
-            modeFirstSound: 'Mute all except first tab with sound',
-            modeWhitelist: 'Mute all except a specific tab',
+            modeActive: 'Mute all except <b>active tab</b>',
+            modeFirstSound: 'Mute all except <b>first tab</b> with sound',
+            modeWhitelist: 'Mute all except a <b>specific tab</b>',
+            modeMuteNew: 'Mute all <b>newly opened</b> tabs',
             selectTabToUnmute: 'Select a Tab to Unmute:',
             showAllTabs: 'Show all tabs',
             refreshSource: '🎵 Current Tab 🠆 SOURCE',
@@ -15,14 +15,16 @@ document.addEventListener('DOMContentLoaded', () => {
             sourceClosed: 'Source tab has been closed.',
             sourcePrefix: 'SOURCE:',
             by: 'by',
-            github: 'Page on GitHub'
+            github: 'Page on GitHub',
+            rememberLastTab: 'Remember last source',
+            rememberLastTabDesc: 'If the source tab goes silent, auto-switch to the last audible tab.'
         },
         ru: {
-            masterToggle: '❌ / ✔️',
             muteAll: '🔇 Заглушить все',
-            modeActive: 'Заглушить все, кроме активной',
-            modeFirstSound: 'Заглушить все, кроме 1ой со звуком',
-            modeWhitelist: 'Заглушить все, кроме выбранной',
+            modeActive: 'Заглушить все, кроме <b>активной</b>',
+            modeFirstSound: 'Заглушить все, кроме <b>1ой со звуком</b>',
+            modeWhitelist: 'Заглушить все, кроме <b>выбранной</b>',
+            modeMuteNew: 'Заглушать все <b>новые</b> вкладки',
             selectTabToUnmute: 'Выберите вкладку для звука:',
             showAllTabs: 'Показать все вкладки',
             refreshSource: '🎵 Текущая вкладка 🠆 ИСТОЧНИК',
@@ -30,7 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
             noSoundSource: 'Источник звука не назначен.',
             sourceClosed: 'Вкладка-источник закрыта.',
             sourcePrefix: 'ИСТОЧНИК:',
-            github: 'Страница на GitHub'
+            github: 'Страница на GitHub',
+            rememberLastTab: 'Помнить источник',
+            rememberLastTabDesc: 'Если источник затихнет, автоматически переключиться на последнюю вкладку со звуком.'
         }
     };
     let currentLanguage = localStorage.getItem('stm_lang') || 'en';
@@ -53,13 +57,18 @@ document.addEventListener('DOMContentLoaded', () => {
         versionInfo: document.getElementById('version-info'),
         authorInfo: document.getElementById('author-info'),
         githubLink: document.getElementById('github-link'),
+        rememberOptionWrapper: document.getElementById('remember-option-wrapper'),
+        rememberLastTabToggle: document.getElementById('remember-last-tab-toggle'),
     };
 
     const getLocaleString = (key) => LOCALES[currentLanguage][key] || LOCALES.en[key];
 
     const applyLocalization = () => {
         document.querySelectorAll('[data-locale]').forEach(el => {
-            el.textContent = getLocaleString(el.dataset.locale);
+            el.innerHTML = getLocaleString(el.dataset.locale);
+        });
+        document.querySelectorAll('[data-locale-title]').forEach(el => {
+            el.title = getLocaleString(el.dataset.localeTitle);
         });
         DOM.versionInfo.textContent = `${MANIFEST.name} v${MANIFEST.version}`;
         DOM.authorInfo.textContent = `${getLocaleString('by')} badrenton`;
@@ -180,6 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const updateControlSectionsVisibility = (mode) => {
+        const showRememberOption = mode === 'first-sound' || mode === 'whitelist';
+        DOM.rememberOptionWrapper.classList.toggle('hidden', !showRememberOption);
+        
         DOM.firstSoundControls.classList.toggle('hidden', mode !== 'first-sound');
         DOM.whitelistControls.classList.toggle('hidden', mode !== 'whitelist');
 
@@ -205,6 +217,9 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.masterToggle.addEventListener('change', e => chrome.storage.sync.set({ isExtensionEnabled: e.target.checked }));
         DOM.muteAllToggle.addEventListener('change', e => chrome.storage.sync.set({ isAllMuted: e.target.checked }));
         DOM.modeForm.addEventListener('change', e => { if (e.target.name === 'mode') chrome.storage.sync.set({ mode: e.target.value }); });
+        
+        DOM.rememberLastTabToggle.addEventListener('change', e => chrome.storage.sync.set({ rememberLastTab: e.target.checked }));
+
         DOM.refreshSourceBtn.addEventListener('click', async () => {
             const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (activeTab) chrome.storage.session.set({ firstAudibleTabId: activeTab.id });
@@ -233,6 +248,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelector(`input[name="mode"][value="${newMode}"]`).checked = true;
                 updateControlSectionsVisibility(newMode);
             }
+            if (changes.rememberLastTab) {
+                DOM.rememberLastTabToggle.checked = changes.rememberLastTab.newValue;
+            }
             if (changes.whitelistedTabId && document.querySelector('input[name="mode"]:checked').value === 'whitelist') {
                 refreshWhitelist();
             }
@@ -244,10 +262,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const initialize = async () => {
-        const settings = await chrome.storage.sync.get({ mode: 'active', isExtensionEnabled: true, isAllMuted: false });
+        const settings = await chrome.storage.sync.get({ mode: 'active', isExtensionEnabled: true, isAllMuted: false, rememberLastTab: false });
         
         DOM.masterToggle.checked = settings.isExtensionEnabled;
         DOM.muteAllToggle.checked = settings.isAllMuted;
+        DOM.rememberLastTabToggle.checked = settings.rememberLastTab;
         DOM.controlsWrapper.classList.toggle('disabled', !settings.isExtensionEnabled);
         document.querySelector(`input[name="mode"][value="${settings.mode}"]`).checked = true;
 

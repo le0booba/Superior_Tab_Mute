@@ -30,11 +30,12 @@
         </div>
 
         <div class="master-toggle-container">
-            <span class="toggle-label" data-locale="masterToggle"></span>
+            <span class="master-toggle-icon">❌</span>
             <label class="toggle-switch">
                 <input type="checkbox" id="master-toggle-switch">
                 <span class="slider"></span>
             </label>
+            <span class="master-toggle-icon">✔️</span>
         </div>
 
         <div id="controls-wrapper">
@@ -49,7 +50,18 @@
                 <label><input type="radio" name="mode" value="active"><span data-locale="modeActive"></span></label>
                 <label><input type="radio" name="mode" value="first-sound"><span data-locale="modeFirstSound"></span></label>
                 <label><input type="radio" name="mode" value="whitelist"><span data-locale="modeWhitelist"></span></label>
+                <label><input type="radio" name="mode" value="mute-new"><span data-locale="modeMuteNew"></span></label>
             </fieldset>
+
+            <div id="remember-option-wrapper" class="hidden">
+                <label class="remember-option-label">
+                    <span class="toggle-label" data-locale="rememberLastTab" data-locale-title="rememberLastTabDesc"></span>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="remember-last-tab-toggle">
+                        <span class="slider"></span>
+                    </div>
+                </label>
+            </div>
 
             <div id="first-sound-controls" class="hidden">
                 <button id="refresh-first-sound-btn" data-locale="refreshSource" type="button"></button>
