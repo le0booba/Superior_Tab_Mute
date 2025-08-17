@@ -39,12 +39,9 @@ const getUnmuteTargetId = async (settings, allTabs, activeTabId) => {
     }
 };
 
-const applyMutingRules = async (activeTabId = null) => {
-    const [settings, allTabs] = await Promise.all([
-        getCombinedSettings(),
-        chrome.tabs.query({})
-    ]);
-
+const applyMutingRules = async (activeTabId = null, providedSettings = null) => {
+    const settings = providedSettings || await getCombinedSettings();
+    const allTabs = await chrome.tabs.query({});
     const manageableTabs = allTabs.filter(tab => tab.id && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://'));
 
     if (!settings.isExtensionEnabled) {
@@ -119,7 +116,7 @@ const handleTabActivation = async ({ tabId }) => {
             }
         } catch (e) {}
     }
-    applyMutingRules(tabId);
+    applyMutingRules(tabId, settings);
 };
 
 const handleTabUpdate = async (tabId, changeInfo) => {
@@ -148,17 +145,17 @@ const handleTabUpdate = async (tabId, changeInfo) => {
         const currentSourceId = settings.mode === 'first-sound' ? settings.firstAudibleTabId : (settings.mode === 'whitelist' ? settings.whitelistedTabId : null);
         if (tabId === currentSourceId) {
             const history = settings.audibleHistory || [];
-            const allTabs = await chrome.tabs.query({});
-            const allTabsById = new Map(allTabs.map(t => [t.id, t]));
 
             for (const historicTabId of history) {
                 if (historicTabId === tabId) continue;
-                const tab = allTabsById.get(historicTabId);
-                if (tab && tab.audible) {
-                    const keyToUpdate = settings.mode === 'first-sound' ? 'firstAudibleTabId' : 'whitelistedTabId';
-                    await chrome.storage.session.set({ [keyToUpdate]: historicTabId });
-                    return;
-                }
+                try {
+                    const tab = await chrome.tabs.get(historicTabId);
+                    if (tab && tab.audible) {
+                        const keyToUpdate = settings.mode === 'first-sound' ? 'firstAudibleTabId' : 'whitelistedTabId';
+                        await chrome.storage.session.set({ [keyToUpdate]: historicTabId });
+                        return;
+                    }
+                } catch (e) { /* Tab may have been closed */ }
             }
             const keyToUpdate = settings.mode === 'first-sound' ? 'firstAudibleTabId' : 'whitelistedTabId';
             await chrome.storage.session.remove(keyToUpdate);
@@ -195,14 +192,14 @@ const handleTabRemoval = async (tabId) => {
 
     if (tabId === currentSourceId) {
         if (settings.rememberLastTab) {
-            const allTabs = await chrome.tabs.query({});
-            const allTabsById = new Map(allTabs.map(t => [t.id, t]));
             for (const historicTabId of history) {
-                 const tab = allTabsById.get(historicTabId);
-                 if (tab && tab.audible) {
-                     await chrome.storage.session.set({ [keyToUpdate]: historicTabId });
-                     return;
-                 }
+                 try {
+                     const tab = await chrome.tabs.get(historicTabId);
+                     if (tab && tab.audible) {
+                         await chrome.storage.session.set({ [keyToUpdate]: historicTabId });
+                         return;
+                     }
+                 } catch (e) { /* Tab may have been closed */ }
             }
         }
         

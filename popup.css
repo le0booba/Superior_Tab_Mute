@@ -329,42 +329,19 @@ h4 {
     flex: 1;
     min-width: 0;
     overflow: hidden;
-    -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%);
-    mask-image: linear-gradient(to right, black 90%, transparent 100%);
 }
 
 .tab-list-title {
-    display: inline-block;
+    display: block;
     white-space: nowrap;
-    --marquee-end-x: 0px;
-}
-
-.tab-list-item:hover .tab-title-wrapper {
-    -webkit-mask-image: none;
-    mask-image: none;
-}
-
-.tab-list-item:hover .tab-list-title[style*="--marquee-end-x"] {
-    animation: marquee 10s ease-in-out 0.8s infinite alternate;
-}
-
-@keyframes marquee {
-    0%, 5% {
-        transform: translateX(0);
-    }
-    95%, 100% {
-        transform: translateX(var(--marquee-end-x));
-    }
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .source-display-title {
     white-space: nowrap;
     overflow: hidden;
-}
-
-.source-display-title.has-overflow {
-    -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
-    mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    text-overflow: ellipsis;
 }
 
 #remember-option-wrapper {

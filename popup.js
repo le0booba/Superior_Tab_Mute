@@ -75,20 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.githubLink.textContent = getLocaleString('github');
     };
 
-    const setupMarqueeForList = (listElement) => {
-        const listItems = listElement.querySelectorAll('.tab-list-item');
-        listItems.forEach(item => {
-            const wrapper = item.querySelector('.tab-title-wrapper');
-            const title = item.querySelector('.tab-list-title');
-            if (!wrapper || !title) return;
-
-            if (title.scrollWidth > wrapper.clientWidth) {
-                const offset = wrapper.clientWidth - title.scrollWidth - 10;
-                title.style.setProperty('--marquee-end-x', `${offset}px`);
-            }
-        });
-    };
-
     const renderTabsList = ({ container, tabs, selectedId }) => {
         container.innerHTML = '';
         if (tabs.length === 0) {
@@ -117,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const span = document.createElement('span');
             span.className = 'tab-list-title';
             span.textContent = tab.title || 'Untitled Tab';
+            span.title = tab.title || 'Untitled Tab'; // Add native tooltip for truncated titles
 
             titleWrapper.appendChild(span);
             li.append(img, titleWrapper);
@@ -124,8 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
             fragment.appendChild(li);
         });
         container.appendChild(fragment);
-
-        setupMarqueeForList(container);
     };
 
     const populateTabList = async ({ listElem, showAllCheckbox, storageKey, showAllKey, onSelect }) => {
@@ -156,16 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const tab = await chrome.tabs.get(firstAudibleTabId);
             DOM.soundSourceDisplay.innerHTML = `<img src="${tab.favIconUrl || 'icons/icon16.png'}" class="tab-list-icon" alt=""><span class="source-display-title">${getLocaleString('sourcePrefix')} ${tab.title}</span>`;
+            DOM.soundSourceDisplay.title = `${getLocaleString('sourcePrefix')} ${tab.title}`; // Add native tooltip
             DOM.soundSourceDisplay.classList.add('active');
-
-            const titleElement = DOM.soundSourceDisplay.querySelector('.source-display-title');
-            if (titleElement) {
-                if (titleElement.scrollWidth > titleElement.clientWidth) {
-                    titleElement.classList.add('has-overflow');
-                } else {
-                    titleElement.classList.remove('has-overflow');
-                }
-            }
         } catch (error) {
             DOM.soundSourceDisplay.textContent = getLocaleString('sourceClosed');
             DOM.soundSourceDisplay.classList.add('error');
