@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('[data-locale-title]').forEach(el => {
             el.title = getLocaleString(el.dataset.localeTitle);
         });
-        DOM.versionInfo.textContent = `${MANIFEST.name} v${MANIFEST.version}`;
+        DOM.versionInfo.innerHTML = `<strong>${MANIFEST.name}</strong> <span class="version-text">v${MANIFEST.version}</span>`;
         DOM.authorInfo.textContent = `${getLocaleString('by')} badrenton`;
         DOM.githubLink.textContent = getLocaleString('github');
     };
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const span = document.createElement('span');
             span.className = 'tab-list-title';
             span.textContent = tab.title || 'Untitled Tab';
-            span.title = tab.title || 'Untitled Tab'; // Add native tooltip for truncated titles
+            span.title = tab.title || 'Untitled Tab';
 
             titleWrapper.appendChild(span);
             li.append(img, titleWrapper);
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const tab = await chrome.tabs.get(firstAudibleTabId);
             DOM.soundSourceDisplay.innerHTML = `<img src="${tab.favIconUrl || 'icons/icon16.png'}" class="tab-list-icon" alt=""><span class="source-display-title">${getLocaleString('sourcePrefix')} ${tab.title}</span>`;
-            DOM.soundSourceDisplay.title = `${getLocaleString('sourcePrefix')} ${tab.title}`; // Add native tooltip
+            DOM.soundSourceDisplay.title = `${getLocaleString('sourcePrefix')} ${tab.title}`;
             DOM.soundSourceDisplay.classList.add('active');
         } catch (error) {
             DOM.soundSourceDisplay.textContent = getLocaleString('sourceClosed');

@@ -134,6 +134,7 @@ input:checked+.slider:before {
     margin-left: 8px;
     font-size: 14px;
     color: var(--text-primary);
+    cursor: pointer;
 }
 
 .master-toggle-container {
@@ -145,6 +146,7 @@ input:checked+.slider:before {
 
 .master-toggle-icon {
     font-size: 16px;
+    cursor: default;
 }
 
 .master-toggle-container .toggle-switch {
@@ -284,7 +286,15 @@ h4 {
 #version-info {
     font-size: 13px;
     color: var(--text-muted);
-    font-weight: bold;
+}
+
+#version-info strong {
+    font-weight: 700;
+}
+
+#version-info .version-text {
+    font-weight: 500;
+    letter-spacing: 1px;
 }
 
 #author-info {
@@ -295,9 +305,9 @@ h4 {
 #github-link {
     font-size: 13px;
     color: #2980b9;
-    text-decoration: underline;
     margin-top: 2px;
     display: inline-block;
+    font-family: 'Courier New', Courier, monospace;
 }
 
 .show-all-tabs-label {
