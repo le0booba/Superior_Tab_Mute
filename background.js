@@ -255,7 +255,7 @@ const handleCommand = async (command) => {
         case 'set-current-tab-source':
             if (mode === 'first-sound') {
                 const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-                if (activeTab) {
+                if (activeTab && activeTab.url && !activeTab.url.startsWith('chrome://') && !activeTab.url.startsWith('chrome-extension://')) {
                     chrome.storage.session.set({ firstAudibleTabId: activeTab.id });
                 }
             }
