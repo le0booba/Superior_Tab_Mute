@@ -188,7 +188,7 @@
 Superior_Tab_Mute/
 ├── 📑 manifest.json         # Extension configuration and permissions
 ├── 🔧 background.js         # Core muting logic and event handling
-├── ⚙️ popup.html            # The structure of the user interface
+├── 🖸  popup.html            # The structure of the user interface
 ├── ⚙️ popup.js              # UI logic and user interactions
 ├── 🎨 popup.css             # Modern dark theme styling
 ├── 🗁 icons/                # Extension status icons
