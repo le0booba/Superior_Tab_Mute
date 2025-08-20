@@ -42,6 +42,7 @@ body {
     flex-direction: column;
     align-items: flex-end;
     line-height: 1.2;
+    cursor: default;
 }
 
 #controls-wrapper.disabled {
