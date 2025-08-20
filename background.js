@@ -155,7 +155,7 @@ const handleTabUpdate = async (tabId, changeInfo) => {
                         await chrome.storage.session.set({ [keyToUpdate]: historicTabId });
                         return;
                     }
-                } catch (e) { /* Tab may have been closed */ }
+                } catch (e) {}
             }
             const keyToUpdate = settings.mode === 'first-sound' ? 'firstAudibleTabId' : 'whitelistedTabId';
             await chrome.storage.session.remove(keyToUpdate);
@@ -199,7 +199,7 @@ const handleTabRemoval = async (tabId) => {
                          await chrome.storage.session.set({ [keyToUpdate]: historicTabId });
                          return;
                      }
-                 } catch (e) { /* Tab may have been closed */ }
+                 } catch (e) {}
             }
         }
         
