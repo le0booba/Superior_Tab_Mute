@@ -57,13 +57,15 @@ const applyMutingRules = async (activeTabId = null, providedSettings = null) => 
 
     const tabToUnmuteId = await getUnmuteTargetId(settings, allTabs, activeTabId);
 
-    const tabsToMute = manageableTabs.filter(tab => tab.id !== tabToUnmuteId);
-    const tabsToUnmute = manageableTabs.filter(tab => tab.id === tabToUnmuteId);
+    const updatePromises = manageableTabs.map(tab => {
+        const shouldBeMuted = tab.id !== tabToUnmuteId;
+        if (tab.mutedInfo?.muted !== shouldBeMuted) {
+            return chrome.tabs.update(tab.id, { muted: shouldBeMuted }).catch(() => {});
+        }
+        return null;
+    }).filter(Boolean);
 
-    await Promise.all([
-        setMuteStatusForTabs(tabsToMute, true),
-        setMuteStatusForTabs(tabsToUnmute, false),
-    ]);
+    await Promise.all(updatePromises);
 };
 
 const updateExtensionIcon = async () => {
@@ -140,28 +142,6 @@ const handleTabUpdate = async (tabId, changeInfo) => {
 
     const settings = await getCombinedSettings();
     if (!settings.isExtensionEnabled) return;
-
-    if (changeInfo.audible === false && settings.rememberLastTab) {
-        const currentSourceId = settings.mode === 'first-sound' ? settings.firstAudibleTabId : (settings.mode === 'whitelist' ? settings.whitelistedTabId : null);
-        if (tabId === currentSourceId) {
-            const history = settings.audibleHistory || [];
-
-            for (const historicTabId of history) {
-                if (historicTabId === tabId) continue;
-                try {
-                    const tab = await chrome.tabs.get(historicTabId);
-                    if (tab && tab.audible) {
-                        const keyToUpdate = settings.mode === 'first-sound' ? 'firstAudibleTabId' : 'whitelistedTabId';
-                        await chrome.storage.session.set({ [keyToUpdate]: historicTabId });
-                        return;
-                    }
-                } catch (e) {}
-            }
-            const keyToUpdate = settings.mode === 'first-sound' ? 'firstAudibleTabId' : 'whitelistedTabId';
-            await chrome.storage.session.remove(keyToUpdate);
-            return;
-        }
-    }
 
     if (changeInfo.audible === true) {
         if (settings.mode === 'first-sound' && !settings.firstAudibleTabId) {

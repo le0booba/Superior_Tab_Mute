@@ -113,8 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(fragment);
     };
 
-    const populateTabList = async ({ listElem, showAllCheckbox, storageKey, showAllKey, onSelect }) => {
-        const { [storageKey]: selectedId } = await chrome.storage.session.get(storageKey);
+    const populateTabList = async ({ listElem, showAllCheckbox, storageKey, showAllKey, onSelect, selectedId }) => {
         const showAll = localStorage.getItem(showAllKey) === 'true';
         showAllCheckbox.checked = showAll;
 
@@ -129,8 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTabsList({ container: listElem, tabs, selectedId });
     };
 
-    const updateFirstSoundDisplay = async () => {
-        const { firstAudibleTabId } = await chrome.storage.session.get('firstAudibleTabId');
+    const updateFirstSoundDisplay = async (firstAudibleTabId) => {
         DOM.soundSourceDisplay.className = 'current-sound-source-display';
 
         if (!firstAudibleTabId) {
@@ -149,23 +147,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    const refreshFirstSoundList = () => populateTabList({
+    const refreshFirstSoundList = (firstAudibleTabId) => populateTabList({
         listElem: DOM.firstSoundTabsList,
         showAllCheckbox: DOM.showAllTabsFirstSound,
         storageKey: 'firstAudibleTabId',
         showAllKey: 'showAllTabsFirstSound',
-        onSelect: tabId => chrome.storage.session.set({ firstAudibleTabId: tabId })
+        onSelect: tabId => chrome.storage.session.set({ firstAudibleTabId: tabId }),
+        selectedId: firstAudibleTabId
     });
 
-    const refreshWhitelist = () => populateTabList({
+    const refreshWhitelist = (whitelistedTabId) => populateTabList({
         listElem: DOM.audibleTabsList,
         showAllCheckbox: DOM.showAllTabsWhitelist,
         storageKey: 'whitelistedTabId',
         showAllKey: 'showAllTabsWhitelist',
-        onSelect: tabId => chrome.storage.session.set({ whitelistedTabId: tabId })
+        onSelect: tabId => chrome.storage.session.set({ whitelistedTabId: tabId }),
+        selectedId: whitelistedTabId
     });
 
-    const updateControlSectionsVisibility = (mode) => {
+    const updateControlSectionsVisibility = (mode, settings) => {
         const showRememberOption = mode === 'first-sound' || mode === 'whitelist';
         DOM.rememberOptionWrapper.classList.toggle('hidden', !showRememberOption);
         
@@ -173,10 +173,10 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.whitelistControls.classList.toggle('hidden', mode !== 'whitelist');
 
         if (mode === 'first-sound') {
-            updateFirstSoundDisplay();
-            refreshFirstSoundList();
+            updateFirstSoundDisplay(settings.firstAudibleTabId);
+            refreshFirstSoundList(settings.firstAudibleTabId);
         } else if (mode === 'whitelist') {
-            refreshWhitelist();
+            refreshWhitelist(settings.whitelistedTabId);
         }
     };
 
@@ -187,7 +187,9 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.langRuBtn.classList.toggle('active', lang === 'ru');
         applyLocalization();
         const currentMode = document.querySelector('input[name="mode"]:checked').value;
-        updateControlSectionsVisibility(currentMode);
+        chrome.storage.session.get(['firstAudibleTabId', 'whitelistedTabId']).then(sessionSettings => {
+            updateControlSectionsVisibility(currentMode, sessionSettings);
+        });
     };
 
     const bindEventListeners = () => {
@@ -203,11 +205,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         DOM.showAllTabsFirstSound.addEventListener('change', e => {
             localStorage.setItem('showAllTabsFirstSound', e.target.checked);
-            refreshFirstSoundList();
+            chrome.storage.session.get('firstAudibleTabId').then(({ firstAudibleTabId }) => refreshFirstSoundList(firstAudibleTabId));
         });
         DOM.showAllTabsWhitelist.addEventListener('change', e => {
             localStorage.setItem('showAllTabsWhitelist', e.target.checked);
-            refreshWhitelist();
+            chrome.storage.session.get('whitelistedTabId').then(({ whitelistedTabId }) => refreshWhitelist(whitelistedTabId));
         });
         DOM.langEnBtn.addEventListener('click', () => switchLanguage('en'));
         DOM.langRuBtn.addEventListener('click', () => switchLanguage('ru'));
@@ -223,23 +225,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if (changes.mode) {
                 const newMode = changes.mode.newValue;
                 document.querySelector(`input[name="mode"][value="${newMode}"]`).checked = true;
-                updateControlSectionsVisibility(newMode);
+                chrome.storage.session.get(['firstAudibleTabId', 'whitelistedTabId']).then(sessionSettings => {
+                     updateControlSectionsVisibility(newMode, sessionSettings);
+                });
             }
             if (changes.rememberLastTab) {
                 DOM.rememberLastTabToggle.checked = changes.rememberLastTab.newValue;
             }
             if (changes.whitelistedTabId && document.querySelector('input[name="mode"]:checked').value === 'whitelist') {
-                refreshWhitelist();
+                refreshWhitelist(changes.whitelistedTabId.newValue);
             }
             if (changes.firstAudibleTabId && document.querySelector('input[name="mode"]:checked').value === 'first-sound') {
-                updateFirstSoundDisplay();
-                refreshFirstSoundList();
+                updateFirstSoundDisplay(changes.firstAudibleTabId.newValue);
+                refreshFirstSoundList(changes.firstAudibleTabId.newValue);
             }
         });
     };
 
     const initialize = async () => {
-        const settings = await chrome.storage.sync.get({ mode: 'active', isExtensionEnabled: true, isAllMuted: false, rememberLastTab: false });
+        const [syncSettings, sessionSettings] = await Promise.all([
+            chrome.storage.sync.get({ mode: 'active', isExtensionEnabled: true, isAllMuted: false, rememberLastTab: false }),
+            chrome.storage.session.get(['firstAudibleTabId', 'whitelistedTabId'])
+        ]);
+        const settings = { ...syncSettings, ...sessionSettings };
         
         DOM.masterToggle.checked = settings.isExtensionEnabled;
         DOM.muteAllToggle.checked = settings.isAllMuted;
@@ -251,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.langRuBtn.classList.toggle('active', currentLanguage === 'ru');
 
         applyLocalization();
-        updateControlSectionsVisibility(settings.mode);
+        updateControlSectionsVisibility(settings.mode, settings);
         bindEventListeners();
         
         document.body.style.opacity = 1;
