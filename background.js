@@ -198,19 +198,35 @@ const handleTabRemoval = async (tabId) => {
 const handleStorageChange = async (changes, area) => {
     if (area !== 'sync' && area !== 'session') return;
 
-    if (changes.mode?.newValue === 'mute-new') {
-        const allTabs = await chrome.tabs.query({});
-        const manageableTabs = allTabs.filter(tab => tab.id && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://'));
-        await setMuteStatusForTabs(manageableTabs, false);
-    }
-
-    if (changes.mode?.newValue === 'first-sound') {
-        const { firstAudibleTabId } = await chrome.storage.session.get('firstAudibleTabId');
-        if (!firstAudibleTabId) {
-            const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            if (activeTab?.audible) {
-                await chrome.storage.session.set({ firstAudibleTabId: activeTab.id });
+    if (changes.mode) {
+        const newMode = changes.mode.newValue;
+        if (newMode === 'first-sound') {
+            const { firstAudibleTabId } = await chrome.storage.session.get('firstAudibleTabId');
+            if (firstAudibleTabId) {
+                try {
+                    await chrome.tabs.get(firstAudibleTabId);
+                } catch (e) {
+                    await chrome.storage.session.remove('firstAudibleTabId');
+                }
+            } else {
+                 const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                 if (activeTab?.audible) {
+                    await chrome.storage.session.set({ firstAudibleTabId: activeTab.id });
+                 }
             }
+        } else if (newMode === 'whitelist') {
+            const { whitelistedTabId } = await chrome.storage.session.get('whitelistedTabId');
+            if (whitelistedTabId) {
+                try {
+                    await chrome.tabs.get(whitelistedTabId);
+                } catch (e) {
+                    await chrome.storage.session.remove('whitelistedTabId');
+                }
+            }
+        } else if (newMode === 'mute-new') {
+            const allTabs = await chrome.tabs.query({});
+            const manageableTabs = allTabs.filter(tab => tab.id && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://'));
+            await setMuteStatusForTabs(manageableTabs, false);
         }
     }
 
