@@ -169,6 +169,10 @@ input[type="radio"] {
     accent-color: var(--accent-primary);
 }
 
+input[type="checkbox"] {
+    accent-color: var(--accent-primary);
+}
+
 #first-sound-controls,
 #whitelist-controls {
     margin-top: 8px;
@@ -189,6 +193,7 @@ input[type="radio"] {
     display: flex;
     align-items: center;
     justify-content: center;
+    font-family: 'Droid Sans Mono', Consolas, monospace;
 }
 
 #refresh-first-sound-btn:hover {
