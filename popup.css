@@ -140,9 +140,10 @@ input:checked+.slider:before {
 
 .master-toggle-container {
     display: flex;
-    justify-content: flex-end;
     align-items: center;
     margin-bottom: 12px;
+    margin-left: auto;
+    width: fit-content;
 }
 
 .master-toggle-icon {
@@ -152,7 +153,7 @@ input:checked+.slider:before {
 
 .master-toggle-container .toggle-switch {
     margin-bottom: 0;
-    margin-left: 0;
+    margin-left: 6px;
     margin-right: 6px;
 }
 

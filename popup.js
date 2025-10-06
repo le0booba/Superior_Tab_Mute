@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modeMuteNew: 'Mute all <b>newly opened</b> tabs',
             selectTabToUnmute: 'Select a Tab to Unmute:',
             showAllTabs: 'Show all tabs',
-            refreshSource: '🎵 Current Tab 🠆 SOURCE',
+            refreshSource: '🔊 Current Tab 🠆 SOURCE',
             noTabs: 'No manageable tabs found.',
             noSoundSource: 'No sound source designated.',
             sourceClosed: 'Source tab has been closed.',
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modeMuteNew: 'Заглушать все <b>новые</b> вкладки',
             selectTabToUnmute: 'Выберите вкладку для звука:',
             showAllTabs: 'Показать все вкладки',
-            refreshSource: '🎵 Текущая вкладка 🠆 ИСТОЧНИК',
+            refreshSource: '🔊 Текущая вкладка 🠆 ИСТОЧНИК',
             noTabs: 'Вкладки не найдены.',
             noSoundSource: 'Источник звука не назначен.',
             sourceClosed: 'Вкладка-источник закрыта.',
@@ -73,6 +73,18 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.versionInfo.innerHTML = `<strong>${MANIFEST.name}</strong> <span class="version-text">v${MANIFEST.version}</span>`;
         DOM.authorInfo.textContent = `${getLocaleString('by')} badrenton`;
         DOM.githubLink.textContent = getLocaleString('github');
+    };
+    
+    const updateShortcutTooltips = async () => {
+        const commands = await chrome.commands.getAll();
+        commands.forEach(command => {
+            if (command.name && command.shortcut) {
+                const el = document.querySelector(`[data-command-name="${command.name}"]`);
+                if (el) {
+                    el.title = command.shortcut;
+                }
+            }
+        });
     };
 
     const renderTabsList = ({ container, tabs, selectedId }) => {
@@ -201,7 +213,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         DOM.refreshSourceBtn.addEventListener('click', async () => {
             const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            if (activeTab) chrome.storage.session.set({ firstAudibleTabId: activeTab.id });
+            if (activeTab && activeTab.url && !activeTab.url.startsWith('chrome://') && !activeTab.url.startsWith('chrome-extension://')) {
+                chrome.storage.session.set({ firstAudibleTabId: activeTab.id });
+            }
         });
         DOM.showAllTabsFirstSound.addEventListener('change', e => {
             localStorage.setItem('showAllTabsFirstSound', e.target.checked);
@@ -260,10 +274,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         applyLocalization();
         updateControlSectionsVisibility(settings.mode, settings);
+        await updateShortcutTooltips();
         bindEventListeners();
         
         document.body.style.opacity = 1;
     };
 
-    initialize();
+    initialize()
 });
