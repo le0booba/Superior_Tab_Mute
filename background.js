@@ -84,18 +84,20 @@ const updateExtensionIcon = async () => {
     chrome.action.setIcon({ path: paths[iconSetKey] });
 };
 
-const handleInstall = () => {
-    chrome.storage.sync.set({
-        mode: 'active',
-        isExtensionEnabled: true,
-        isAllMuted: false,
-        rememberLastTab: false,
-    });
-    chrome.storage.session.set({
-        firstAudibleTabId: null,
-        whitelistedTabId: null,
-        audibleHistory: [],
-    });
+const handleInstall = (details) => {
+    if (details.reason === 'install') {
+        chrome.storage.sync.set({
+            mode: 'active',
+            isExtensionEnabled: true,
+            isAllMuted: false,
+            rememberLastTab: false,
+        });
+        chrome.storage.session.set({
+            firstAudibleTabId: null,
+            whitelistedTabId: null,
+            audibleHistory: [],
+        });
+    }
 };
 
 const handleTabCreation = async (tab) => {
