@@ -5,7 +5,7 @@
 
    **Intelligent Audio Control for Chrome**
 
-   Stop the audio chaos. Superior Tab Mute puts you in command of your browser's soundscape, automatically silencing background tabs based on simple, powerful rules. This creates a focused environment, perfect for concentrating on work, enjoying uninterrupted music, or    isolating a single stream. With its smart muting modes, instant controls, and clean design, you can finally browse in peace.
+   Stop the audio chaos. Superior Tab Mute puts you in command of your browser's soundscape, automatically silencing background tabs based on simple, powerful rules. This creates a focused environment, perfect for concentrating on work, enjoying uninterrupted music, or isolating a single stream. With its smart muting modes, instant controls, and clean design, you can finally browse in peace.
 
    ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue?logo=googlechrome)
    ![Manifest V3](https://img.shields.io/badge/Manifest-V3-brightgreen)
@@ -26,7 +26,7 @@
     -   Click **Load unpacked** and select the unzipped extension folder.
 
 3.  **Start Using**
-    -   Click the extension icon in Chrome’s toolbar to access the popup and configure settings.
+    -   Click the extension icon in Chrome's toolbar to access the popup and configure settings.
 
 ---
 
@@ -48,15 +48,16 @@
 
 ### 🧠 Intelligent Automation
 
--   **Remember Last Source**: When enabled for "First Sound" or "Whitelist" mode, the extension will automatically switch to the last tab that was playing audio if your current source tab goes silent or is closed. This ensures seamless listening without manual intervention.
+-   **Remember Last Source**: When enabled for "First Sound" or "Whitelist" mode, the extension maintains a history of up to 20 recently audible tabs. If your current source tab goes silent or is closed, it automatically switches to the most recent tab that was playing audio. This ensures seamless listening without manual intervention, intelligently prioritizing your listening experience.
 
 <details>
 <summary>🎨 User-Friendly Interface</summary>
 
 -   **Dynamic Status Icons**: The extension icon changes to reflect the current state (active, muted, or disabled).
 -   **Real-Time Tab List**: Displays tabs with audio or all tabs, complete with favicons and full title previews on hover.
--   **Bilingual Support**: Instantly switch between English and Russian via the popup’s language buttons.
+-   **Bilingual Support**: Instantly switch between English and Russian via the popup's language buttons.
 -   **Modern Dark Theme**: A sleek, eye-friendly design suitable for any environment.
+-   **Tooltip Shortcuts**: Hover over controls to see assigned keyboard shortcuts for quick access.
 
 </details>
 
@@ -66,6 +67,8 @@
 -   **Persistent & Synced Settings**: Core preferences sync across devices using your Chrome account.
 -   **Safe Handling**: Automatically ignores Chrome system pages (`chrome://`) and other extensions to prevent conflicts.
 -   **Error Recovery**: Intelligently handles closed tabs by clearing their status and automatically updating muting rules.
+-   **Smart History Tracking**: Maintains a rolling history of audible tabs for intelligent source switching.
+-   **Efficient Storage**: Uses appropriate storage mechanisms (sync, session, local) for different types of data.
 
 </details>
 
@@ -74,12 +77,19 @@
 ## 📖 Usage Guide
 
 1.  **Open the Popup**
-    -   Click the Superior Tab Mute icon in Chrome’s toolbar to access the control panel.
+    -   Click the Superior Tab Mute icon in Chrome's toolbar to access the control panel.
 
 2.  **Select a Mode**
     -   Choose your desired muting strategy: **Active Tab**, **First Sound**, **Whitelist**, or **Mute New Tabs** mode using the radio buttons.
-    -   For "First Sound" or "Whitelist" modes, use the tab list to select your audio source. You can enable “Show all tabs” for more options.
-    -   When using "First Sound" or "Whitelist" modes, you can check the **"Remember last source"** box to enable automatic source switching if the original source stops playing sound.
+    -   For "First Sound" or "Whitelist" modes, use the tab list to select your audio source. You can enable "Show all tabs" for more options.
+    -   When using "First Sound" or "Whitelist" modes, check the **"Remember last source"** box to enable automatic source switching. The extension will track recently audible tabs and seamlessly switch to them if your current source stops playing or closes.
+
+3.  **Use Keyboard Shortcuts**
+    -   `Alt+Shift+S`: Toggle extension on/off
+    -   `Alt+Shift+M`: Toggle mute all tabs
+    -   `Alt+Shift+E`: Set current tab as sound source (First Sound mode)
+    -   Hover over controls in the popup to see their shortcuts
+    -   Customize shortcuts at `chrome://extensions/shortcuts`
 
 ---
 
@@ -117,7 +127,7 @@
 -   Temporary settings that are cleared when the browser is closed.
 -   **`firstAudibleTabId`** (tab ID): Tracks the designated audio source tab in "First Sound Mode".
 -   **`whitelistedTabId`** (tab ID): Tracks the user-selected tab in "Whitelist Mode".
--   **`audibleHistory`** (array of tab IDs): Keeps a short history of tabs that have recently played audio, used by the "Remember Last Source" feature.
+-   **`audibleHistory`** (array of tab IDs): Keeps a rolling history of up to 20 tabs that have recently played audio, used by the "Remember Last Source" feature to intelligently switch sources.
 -   *Purpose*: Tab IDs are unique to each browser session and would be invalid across devices or after a restart, making session storage the ideal choice.
 
 </details>
@@ -141,7 +151,7 @@
 <summary><strong>Problem: The extension isn't muting any tabs.</strong></summary>
 <blockquote>
 
-- **Check the Master Toggle**: Ensure the main toggle switch (❌ / ✔️) in the popup is enabled (✔️).
+- **Check the Master Toggle**: Ensure the main toggle switch (⭘ / ⏽) in the popup is enabled (⏽).
 - **Check Global Mute**: Make sure the "Mute All Tabs" switch is not overriding your selected mode.
 - **Reload the Extension**: Go to `chrome://extensions/`, find Superior Tab Mute, and click the refresh icon.
 - **Restart Chrome**: A simple restart can resolve temporary issues.
@@ -164,7 +174,7 @@
 <blockquote>
 
 - **Verify the Mode**: Double-check which mode is active. The behavior depends entirely on it.
-- **Re-select the Source**: In "Whitelist" or "First Sound" mode, try re-selecting the desired tab from the list. In "First Sound" mode, you can also use the **🎵 Current Tab 🠆 SOURCE** button to force an update.
+- **Re-select the Source**: In "Whitelist" or "First Sound" mode, try re-selecting the desired tab from the list. In "First Sound" mode, you can also use the **🔊 Current Tab 🠆 SOURCE** button to force an update.
 - **Reload the Tab**: The specific web page might be in an unusual state. Reloading the tab (F5 or Ctrl+R) often fixes this.
 
 </blockquote>
@@ -180,6 +190,17 @@
 </blockquote>
 </details>
 
+<details>
+<summary><strong>Problem: The "Remember Last Source" feature isn't working.</strong></summary>
+<blockquote>
+
+- **Check the Toggle**: Make sure the "Remember last source" toggle is enabled for the current mode (First Sound or Whitelist).
+- **Verify History**: The feature requires at least one other tab to have played audio recently. The extension maintains a history of up to 20 recently audible tabs.
+- **Test It**: Close the current source tab and see if the extension switches to another recently audible tab automatically.
+
+</blockquote>
+</details>
+
 ---
 
 ## 📁 File Structure
@@ -188,7 +209,7 @@
 Superior_Tab_Mute/
 ├── 📑 manifest.json         # Extension configuration and permissions
 ├── 🔧 background.js         # Core muting logic and event handling
-├── 🖸  popup.html            # The structure of the user interface
+├── 🖹 popup.html            # The structure of the user interface
 ├── ⚙️ popup.js              # UI logic and user interactions
 ├── 🎨 popup.css             # Modern dark theme styling
 ├── 🗁 icons/                # Extension status icons
@@ -201,7 +222,8 @@ Superior_Tab_Mute/
 │   ├── 🖼️ icon128.png          # Default state
 │   ├── 🖼️ icon128_mute.png     # All tabs muted state
 │   └── 🖼️ icon128_off.png      # Disabled state
-└── 🖺 README.md             # This documentation
+├── 📄 LICENSE.md            # MIT License
+└── 📖 README.md             # This documentation
 ```
 
 ---
