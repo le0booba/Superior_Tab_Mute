@@ -85,10 +85,13 @@
                     <h4 data-locale="selectTabToUnmute"></h4>
                     <button id="clear-whitelist-btn" type="button" data-locale-title="clearSource" title="Clear sound source">☓</button>
                 </div>
-                 <label class="show-all-tabs-label">
-                    <input type="checkbox" id="show-all-tabs-whitelist">
-                    <span data-locale="showAllTabs"></span>
-                </label>
+                <div class="whitelist-options-wrapper">
+                    <div id="whitelisted-source-tab-display" class="hidden"></div>
+                    <label class="show-all-tabs-label">
+                        <input type="checkbox" id="show-all-tabs-whitelist">
+                        <span data-locale="showAllTabs"></span>
+                    </label>
+                </div>
                 <ul id="audible-tabs-list"></ul>
             </div>
         </div>

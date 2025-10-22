@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         githubLink: document.getElementById('github-link'),
         rememberOptionWrapper: document.getElementById('remember-option-wrapper'),
         rememberLastTabToggle: document.getElementById('remember-last-tab-toggle'),
+        whitelistedSourceTabDisplay: document.getElementById('whitelisted-source-tab-display'),
     };
 
     const getLocaleString = (key) => LOCALES[currentLanguage][key] || LOCALES.en[key];
@@ -193,13 +194,41 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedId: firstAudibleTabId
     });
 
-    const refreshWhitelist = (whitelistedTabId) => populateTabList({
-        listElem: DOM.audibleTabsList,
-        showAllCheckbox: DOM.showAllTabsWhitelist,
-        showAllKey: 'showAllTabsWhitelist',
-        onSelect: tabId => chrome.storage.session.set({ whitelistedTabId: tabId }),
-        selectedId: whitelistedTabId
-    });
+    const refreshWhitelist = async (whitelistedTabId) => {
+        const { showAllTabsWhitelist: showAll } = await chrome.storage.local.get({ showAllTabsWhitelist: false });
+        DOM.showAllTabsWhitelist.checked = showAll;
+
+        const specialDisplayContainer = DOM.whitelistedSourceTabDisplay;
+        specialDisplayContainer.innerHTML = '';
+        specialDisplayContainer.classList.add('hidden');
+
+        const listElem = DOM.audibleTabsList;
+        listElem.onclick = (e) => {
+            const li = e.target.closest('.tab-list-item:not(.no-sound)');
+            if (li?.dataset.tabId) chrome.storage.session.set({ whitelistedTabId: parseInt(li.dataset.tabId, 10) });
+        };
+
+        const query = showAll ? {} : { audible: true };
+        const tabsForList = (await chrome.tabs.query(query)).filter(t => t.id && !t.url.startsWith('chrome://') && !t.url.startsWith('chrome-extension://'));
+
+        const isWhitelistedTabInList = tabsForList.some(t => t.id === whitelistedTabId);
+
+        if (whitelistedTabId && !isWhitelistedTabInList && !showAll) {
+            try {
+                const whitelistedTab = await chrome.tabs.get(whitelistedTabId);
+                renderTabsList({
+                    container: specialDisplayContainer,
+                    tabs: [whitelistedTab],
+                    selectedId: whitelistedTabId
+                });
+                specialDisplayContainer.classList.remove('hidden');
+            } catch (e) {
+                console.warn(`Whitelisted tab ${whitelistedTabId} not found.`);
+            }
+        }
+
+        renderTabsList({ container: listElem, tabs: tabsForList, selectedId: whitelistedTabId });
+    };
 
     const updateControlSectionsVisibility = async (mode, settings) => {
         const showRememberOption = mode === 'first-sound' || mode === 'whitelist';
