@@ -53,6 +53,10 @@
                 <label><input type="radio" name="mode" value="mute-new"><span data-locale="modeMuteNew"></span></label>
             </fieldset>
 
+            <div id="mute-new-controls" class="hidden">
+                <button id="reset-mute-new-btn" data-locale="resetMuteNew" type="button"></button>
+            </div>
+
             <div id="remember-option-wrapper" class="hidden">
                 <label class="remember-option-label">
                     <span class="toggle-label" data-locale="rememberLastTab" data-locale-title="rememberLastTabDesc"></span>
@@ -64,7 +68,10 @@
             </div>
 
             <div id="first-sound-controls" class="hidden">
-                <button id="refresh-first-sound-btn" data-locale="refreshSource" type="button" data-command-name="set-current-tab-source"></button>
+                <div id="first-sound-btn-container">
+                    <button id="set-source-btn" data-locale="refreshSource" type="button" data-command-name="set-current-tab-source"></button>
+                    <button id="clear-source-btn" type="button" data-locale-title="clearSource" title="Clear sound source">☓</button>
+                </div>
                 <div id="current-sound-source-display" class="current-sound-source-display"></div>
                 <label class="show-all-tabs-label">
                     <input type="checkbox" id="show-all-tabs-first-sound">
@@ -74,7 +81,10 @@
             </div>
 
             <div id="whitelist-controls" class="hidden">
-                <h4 data-locale="selectTabToUnmute"></h4>
+                <div class="whitelist-header">
+                    <h4 data-locale="selectTabToUnmute"></h4>
+                    <button id="clear-whitelist-btn" type="button" data-locale-title="clearSource" title="Clear sound source">☓</button>
+                </div>
                  <label class="show-all-tabs-label">
                     <input type="checkbox" id="show-all-tabs-whitelist">
                     <span data-locale="showAllTabs"></span>
