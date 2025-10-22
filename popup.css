@@ -452,27 +452,3 @@ h4 {
 .remember-option-label .toggle-switch {
     margin-bottom: 0;
 }
-
-.whitelist-options-wrapper {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 4px 0 8px;
-}
-
-#whitelisted-source-tab-display {
-    flex: 1;
-    min-width: 0;
-    margin-right: 8px;
-}
-
-#whitelisted-source-tab-display .tab-list-item {
-    margin-bottom: 0;
-    padding: 6px 10px;
-    cursor: default;
-}
-
-.whitelist-options-wrapper .show-all-tabs-label {
-    margin: 0;
-    flex-shrink: 0;
-}

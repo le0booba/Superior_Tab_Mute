@@ -70,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
         githubLink: document.getElementById('github-link'),
         rememberOptionWrapper: document.getElementById('remember-option-wrapper'),
         rememberLastTabToggle: document.getElementById('remember-last-tab-toggle'),
-        whitelistedSourceTabDisplay: document.getElementById('whitelisted-source-tab-display'),
     };
 
     const getLocaleString = (key) => LOCALES[currentLanguage][key] || LOCALES.en[key];
@@ -195,39 +194,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const refreshWhitelist = async (whitelistedTabId) => {
+        const showAllCheckbox = DOM.showAllTabsWhitelist;
         const { showAllTabsWhitelist: showAll } = await chrome.storage.local.get({ showAllTabsWhitelist: false });
-        DOM.showAllTabsWhitelist.checked = showAll;
-
-        const specialDisplayContainer = DOM.whitelistedSourceTabDisplay;
-        specialDisplayContainer.innerHTML = '';
-        specialDisplayContainer.classList.add('hidden');
-
-        const listElem = DOM.audibleTabsList;
-        listElem.onclick = (e) => {
-            const li = e.target.closest('.tab-list-item:not(.no-sound)');
-            if (li?.dataset.tabId) chrome.storage.session.set({ whitelistedTabId: parseInt(li.dataset.tabId, 10) });
-        };
-
+        showAllCheckbox.checked = showAll;
+    
         const query = showAll ? {} : { audible: true };
-        const tabsForList = (await chrome.tabs.query(query)).filter(t => t.id && !t.url.startsWith('chrome://') && !t.url.startsWith('chrome-extension://'));
-
-        const isWhitelistedTabInList = tabsForList.some(t => t.id === whitelistedTabId);
-
-        if (whitelistedTabId && !isWhitelistedTabInList && !showAll) {
-            try {
-                const whitelistedTab = await chrome.tabs.get(whitelistedTabId);
-                renderTabsList({
-                    container: specialDisplayContainer,
-                    tabs: [whitelistedTab],
-                    selectedId: whitelistedTabId
-                });
-                specialDisplayContainer.classList.remove('hidden');
-            } catch (e) {
-                console.warn(`Whitelisted tab ${whitelistedTabId} not found.`);
+        let tabs = (await chrome.tabs.query(query)).filter(t => t.id && !t.url.startsWith('chrome://') && !t.url.startsWith('chrome-extension://'));
+    
+        if (!showAll && whitelistedTabId) {
+            const isWhitelistedTabInList = tabs.some(tab => tab.id === whitelistedTabId);
+            if (!isWhitelistedTabInList) {
+                try {
+                    const whitelistedTabDetails = await chrome.tabs.get(whitelistedTabId);
+                    if (whitelistedTabDetails) {
+                        tabs.unshift(whitelistedTabDetails);
+                    }
+                } catch (error) {
+                    // Tab might be closed.
+                }
             }
         }
-
-        renderTabsList({ container: listElem, tabs: tabsForList, selectedId: whitelistedTabId });
+    
+        DOM.audibleTabsList.onclick = (e) => {
+            const li = e.target.closest('.tab-list-item:not(.no-sound)');
+            if (li?.dataset.tabId) {
+                chrome.storage.session.set({ whitelistedTabId: parseInt(li.dataset.tabId, 10) });
+            }
+        };
+    
+        renderTabsList({ container: DOM.audibleTabsList, tabs, selectedId: whitelistedTabId });
     };
 
     const updateControlSectionsVisibility = async (mode, settings) => {
