@@ -357,7 +357,7 @@ h4 {
 
 #whitelist-controls h4 {
     padding-left: 8px;
-    margin-top: 4px;
+    margin: 0;
 }
 
 #version-info {
