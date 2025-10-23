@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Superior Tab Mute BETA",
+  "name": "Superior Tab Mute",
   "version": "2.0.5",
   "description": "Advanced control over sound in browser.",
   "permissions": [
