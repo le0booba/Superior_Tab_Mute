@@ -1,7 +1,7 @@
 # Superior Tab Mute
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/le0booba/Superior_Tab_Mute/refs/heads/main/screen-options-popup-main.png" alt="Superior Tab Mute Screenshot" width="230"/>
+   <img src="https://raw.githubusercontent.com/le0booba/Superior_Tab_Mute/refs/heads/main/screen-options-popup-main-1.png" alt="Superior Tab Mute Screenshot" width="230"/>
 
    **Intelligent Audio Control for Chrome**
 
@@ -48,7 +48,7 @@
 
 ### 🧠 Intelligent Automation
 
--   **Remember Last Source**: When enabled for "First Sound" or "Whitelist" mode, the extension maintains a history of up to 20 recently audible tabs. If your current source tab goes silent or is closed, it automatically switches to the most recent tab that was playing audio. This ensures seamless listening without manual intervention, intelligently prioritizing your listening experience.
+-   **Remember Last Source**: When enabled for "First Sound" or "Whitelist" mode, the extension automatically switches to previously audible tabs when your current source tab goes silent or is closed. This ensures seamless listening without manual intervention, intelligently prioritizing your listening experience by falling back to the most recently active audio source.
 
 <details>
 <summary>🎨 User-Friendly Interface</summary>
@@ -67,7 +67,7 @@
 -   **Persistent & Synced Settings**: Core preferences sync across devices using your Chrome account.
 -   **Safe Handling**: Automatically ignores Chrome system pages (`chrome://`) and other extensions to prevent conflicts.
 -   **Error Recovery**: Intelligently handles closed tabs by clearing their status and automatically updating muting rules.
--   **Smart History Tracking**: Maintains a rolling history of audible tabs for intelligent source switching.
+-   **Smart Source Switching**: Automatically switches to alternative audio sources when the current source becomes unavailable.
 -   **Efficient Storage**: Uses appropriate storage mechanisms (sync, session, local) for different types of data.
 
 </details>
@@ -82,7 +82,7 @@
 2.  **Select a Mode**
     -   Choose your desired muting strategy: **Active Tab**, **First Sound**, **Whitelist**, or **Mute New Tabs** mode using the radio buttons.
     -   For "First Sound" or "Whitelist" modes, use the tab list to select your audio source. You can enable "Show all tabs" for more options.
-    -   When using "First Sound" or "Whitelist" modes, check the **"Remember last source"** box to enable automatic source switching. The extension will track recently audible tabs and seamlessly switch to them if your current source stops playing or closes.
+    -   When using "First Sound" or "Whitelist" modes, check the **"Remember last source"** box to enable automatic source switching. The extension will seamlessly switch to previously audible tabs if your current source stops playing or closes.
 
 3.  **Use Keyboard Shortcuts**
     -   `Alt+Shift+S`: Toggle extension on/off
@@ -127,7 +127,7 @@
 -   Temporary settings that are cleared when the browser is closed.
 -   **`firstAudibleTabId`** (tab ID): Tracks the designated audio source tab in "First Sound Mode".
 -   **`whitelistedTabId`** (tab ID): Tracks the user-selected tab in "Whitelist Mode".
--   **`audibleHistory`** (array of tab IDs): Keeps a rolling history of up to 20 tabs that have recently played audio, used by the "Remember Last Source" feature to intelligently switch sources.
+-   **`popupTabsData`** (array of tab objects): Cached tab information for efficient popup rendering, including tab IDs, titles, favicons, and audible status.
 -   *Purpose*: Tab IDs are unique to each browser session and would be invalid across devices or after a restart, making session storage the ideal choice.
 
 </details>
@@ -174,7 +174,7 @@
 <blockquote>
 
 - **Verify the Mode**: Double-check which mode is active. The behavior depends entirely on it.
-- **Re-select the Source**: In "Whitelist" or "First Sound" mode, try re-selecting the desired tab from the list. In "First Sound" mode, you can also use the **🔊 Current Tab 🠆 SOURCE** button to force an update.
+- **Re-select the Source**: In "Whitelist" or "First Sound" mode, try re-selecting the desired tab from the list. In "First Sound" mode, you can also use the **Current Tab ➜ 🔊** button to force an update.
 - **Reload the Tab**: The specific web page might be in an unusual state. Reloading the tab (F5 or Ctrl+R) often fixes this.
 
 </blockquote>
@@ -195,7 +195,7 @@
 <blockquote>
 
 - **Check the Toggle**: Make sure the "Remember last source" toggle is enabled for the current mode (First Sound or Whitelist).
-- **Verify History**: The feature requires at least one other tab to have played audio recently. The extension maintains a history of up to 20 recently audible tabs.
+- **Verify Audible Tabs**: The feature requires at least one other tab to be playing audio or to have recently played audio.
 - **Test It**: Close the current source tab and see if the extension switches to another recently audible tab automatically.
 
 </blockquote>
