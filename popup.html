@@ -39,18 +39,33 @@
         </div>
 
         <div id="controls-wrapper">
-            <label class="toggle-switch" data-command-name="toggle-mute-all">
-                <input type="checkbox" id="mute-all-toggle-switch">
-                <span class="slider"></span>
-                <span class="toggle-label" data-locale="muteAll"></span>
-            </label>
+            <div class="toggle-option">
+                <label class="toggle-switch" data-command-name="toggle-mute-all">
+                    <input type="checkbox" id="mute-all-toggle-switch">
+                    <span class="slider"></span>
+                    <span class="toggle-label" data-locale="muteAll"></span>
+                </label>
+                <button class="set-default-btn" id="set-default-mute-all" title="Set as default">☆</button>
+            </div>
 
             <fieldset id="mode-form">
                 <legend class="sr-only">Muting Mode</legend>
-                <label><input type="radio" name="mode" value="active"><span data-locale="modeActive"></span></label>
-                <label><input type="radio" name="mode" value="first-sound"><span data-locale="modeFirstSound"></span></label>
-                <label><input type="radio" name="mode" value="whitelist"><span data-locale="modeWhitelist"></span></label>
-                <label><input type="radio" name="mode" value="mute-new"><span data-locale="modeMuteNew"></span></label>
+                <div class="mode-option">
+                    <label><input type="radio" name="mode" value="active"><span data-locale="modeActive"></span></label>
+                    <button class="set-default-btn" data-mode="active" title="Set as default">☆</button>
+                </div>
+                <div class="mode-option">
+                    <label><input type="radio" name="mode" value="first-sound"><span data-locale="modeFirstSound"></span></label>
+                    <button class="set-default-btn" data-mode="first-sound" title="Set as default">☆</button>
+                </div>
+                <div class="mode-option">
+                    <label><input type="radio" name="mode" value="whitelist"><span data-locale="modeWhitelist"></span></label>
+                    <button class="set-default-btn" data-mode="whitelist" title="Set as default">☆</button>
+                </div>
+                <div class="mode-option">
+                    <label><input type="radio" name="mode" value="mute-new"><span data-locale="modeMuteNew"></span></label>
+                    <button class="set-default-btn" data-mode="mute-new" title="Set as default">☆</button>
+                </div>
             </fieldset>
 
             <div id="mute-new-controls" class="hidden">

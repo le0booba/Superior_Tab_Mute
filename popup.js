@@ -1,8 +1,47 @@
 document.addEventListener('DOMContentLoaded', () => {
     const MANIFEST = chrome.runtime.getManifest();
     const LOCALES = {
-        en: { muteAll: '🔇 Mute All Tabs', modeActive: 'Mute all except <b>active tab</b>', modeFirstSound: 'Mute all except <b>first tab</b> with sound', modeWhitelist: 'Mute all except a <b>specific tab</b>', modeMuteNew: 'Mute all <b>newly opened</b> tabs', selectTabToUnmute: 'Select a Tab to Unmute:', showAllTabs: 'Show all tabs', refreshSource: 'Current Tab ➜ 🔊', noTabs: 'No manageable tabs found.', noSoundSource: 'No sound source designated.', sourceClosed: 'Source tab has been closed.', sourcePrefix: 'SOURCE:', by: 'by', github: 'Page on GitHub', rememberLastTab: 'Remember previous source', rememberLastTabDesc: 'If the source tab goes silent, auto-switch to the last audible tab.', resetMuteNew: '🗔 Reset Mute on All Tabs', resetSuccess: '✅ d o n e', clearSource: 'Clear sound source' },
-        ru: { muteAll: '🔇 Заглушить все', modeActive: 'Заглушить все, кроме <b>активной</b>', modeFirstSound: 'Заглушить все, кроме <b>1ой со звуком</b>', modeWhitelist: 'Заглушить все, кроме <b>выбранной</b>', modeMuteNew: 'Заглушать все <b>новые</b> вкладки', selectTabToUnmute: 'Выберите вкладку для звука:', showAllTabs: 'Показать все вкладки', refreshSource: 'Текущая вкладка ➜ 🔊', noTabs: 'Вкладки со звуком не найдены.', noSoundSource: 'Источник звука не назначен.', sourceClosed: 'Вкладка-источник закрыта.', sourcePrefix: 'ИСТОЧНИК:', github: 'Страница на GitHub', rememberLastTab: 'Помнить пред. источник', rememberLastTabDesc: 'Если источник затихнет, автоматически переключиться на последнюю вкладку со звуком.', resetMuteNew: '🗔 Сбросить обеззвучивание', resetSuccess: '✅ Готово!', clearSource: 'Очистить источник звука' }
+        en: {
+            muteAll: '🔇 Mute All Tabs',
+            modeActive: 'Mute all except <b>active tab</b>',
+            modeFirstSound: 'Mute all except <b>first tab</b> with sound',
+            modeWhitelist: 'Mute all except a <b>specific tab</b>',
+            modeMuteNew: 'Mute all <b>newly opened</b> tabs',
+            selectTabToUnmute: 'Select a Tab to Unmute:',
+            showAllTabs: 'Show all tabs',
+            refreshSource: 'Current Tab ➜ 🔊',
+            noTabs: 'No manageable tabs found.',
+            noSoundSource: 'No sound source designated.',
+            sourceClosed: 'Source tab has been closed.',
+            sourcePrefix: 'SOURCE:',
+            by: 'by',
+            github: '⮺ GitHub',
+            rememberLastTab: 'Remember previous source',
+            rememberLastTabDesc: 'If the source tab goes silent, auto-switch to the last audible tab.',
+            resetMuteNew: '🗔 Reset Mute on All Tabs',
+            resetSuccess: '✅ d o n e',
+            clearSource: 'Clear sound source'
+        },
+        ru: {
+            muteAll: '🔇 Заглушить все',
+            modeActive: 'Заглушить все, кроме <b>активной</b>',
+            modeFirstSound: 'Заглуш. все, кроме <b>1ой со звуком</b>',
+            modeWhitelist: 'Заглушить все, кроме <b>выбранной</b>',
+            modeMuteNew: 'Заглушать все <b>новые</b> вкладки',
+            selectTabToUnmute: 'Выберите вкладку для звука:',
+            showAllTabs: 'Показать все вкладки',
+            refreshSource: 'Текущая вкладка ➜ 🔊',
+            noTabs: 'Вкладки не найдены.',
+            noSoundSource: 'Источник звука не назначен.',
+            sourceClosed: 'Вкладка-источник закрыта.',
+            sourcePrefix: 'ИСТОЧНИК:',
+            github: '⮺ GitHub',
+            rememberLastTab: 'Помнить пред. источник',
+            rememberLastTabDesc: 'Если источник затихнет, автоматически переключиться на последнюю вкладку со звуком.',
+            resetMuteNew: '🗔 Сбросить обеззвучивание',
+            resetSuccess: '✅ Готово!',
+            clearSource: 'Очистить источник звука'
+        }
     };
     let currentLanguage = 'en';
     let popupTabsData = [];
@@ -15,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetMuteNewBtn: document.getElementById('reset-mute-new-btn'),
         masterToggle: document.getElementById('master-toggle-switch'),
         muteAllToggle: document.getElementById('mute-all-toggle-switch'),
+        setDefaultMuteAllBtn: document.getElementById('set-default-mute-all'),
         modeForm: document.getElementById('mode-form'),
         setSourceBtn: document.getElementById('set-source-btn'),
         clearSourceBtn: document.getElementById('clear-source-btn'),
@@ -144,6 +184,23 @@ document.addEventListener('DOMContentLoaded', () => {
             await refreshWhitelist(settings.whitelistedTabId);
         }
     };
+    
+    const updateDefaultModeUI = (defaultMode) => {
+        document.querySelectorAll('.set-default-btn[data-mode]').forEach(btn => {
+            const isActive = btn.dataset.mode === defaultMode;
+            btn.classList.toggle('active', isActive);
+            btn.textContent = isActive ? '★' : '☆';
+            btn.title = isActive ? 'Default mode' : 'Set as default';
+        });
+    };
+
+    const updateDefaultMuteAllUI = (defaultMuteAll) => {
+        const btn = DOM.setDefaultMuteAllBtn;
+        const isActive = defaultMuteAll === true;
+        btn.classList.toggle('active', isActive);
+        btn.textContent = isActive ? '★' : '☆';
+        btn.title = isActive ? 'Default is ON' : 'Set default to ON';
+    };
 
     const switchLanguage = async (lang) => {
         if (currentLanguage === lang) return;
@@ -210,24 +267,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 DOM.resetMuteNewBtn.classList.remove('success');
             }, 1500);
         });
+        
+        DOM.modeForm.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('set-default-btn')) {
+                const clickedMode = e.target.dataset.mode;
+                const { defaultMode } = await chrome.storage.sync.get('defaultMode');
+                if (defaultMode === clickedMode) {
+                    chrome.storage.sync.remove('defaultMode');
+                } else {
+                    chrome.storage.sync.set({ defaultMode: clickedMode });
+                }
+            }
+        });
+
+        DOM.setDefaultMuteAllBtn.addEventListener('click', async () => {
+            const { defaultMuteAll } = await chrome.storage.sync.get({ defaultMuteAll: false });
+            chrome.storage.sync.set({ defaultMuteAll: !defaultMuteAll });
+        });
 
         chrome.storage.onChanged.addListener(async (changes) => {
-            if (changes.popupTabsData) popupTabsData = changes.popupTabsData.newValue || [];
-            const settings = await getCombinedSettings();
-            if (changes.isExtensionEnabled) {
-                DOM.masterToggle.checked = settings.isExtensionEnabled;
-                DOM.controlsWrapper.classList.toggle('disabled', !settings.isExtensionEnabled);
+            if (changes.popupTabsData) {
+                popupTabsData = changes.popupTabsData.newValue || [];
             }
-            if (changes.isAllMuted) DOM.muteAllToggle.checked = settings.isAllMuted;
-            if (changes.rememberLastTab) DOM.rememberLastTabToggle.checked = settings.rememberLastTab;
-            if (changes.mode) document.querySelector(`input[name="mode"][value="${settings.mode}"]`).checked = true;
-            await updateControlSectionsVisibility(settings.mode, settings);
+            if (changes.defaultMode) {
+                updateDefaultModeUI(changes.defaultMode.newValue);
+            }
+            if (changes.defaultMuteAll) {
+                updateDefaultMuteAllUI(changes.defaultMuteAll.newValue);
+            }
+            if (changes.isExtensionEnabled) {
+                DOM.masterToggle.checked = changes.isExtensionEnabled.newValue;
+                DOM.controlsWrapper.classList.toggle('disabled', !changes.isExtensionEnabled.newValue);
+            }
+            if (changes.isAllMuted) {
+                DOM.muteAllToggle.checked = changes.isAllMuted.newValue;
+            }
+            if (changes.rememberLastTab) {
+                DOM.rememberLastTabToggle.checked = changes.rememberLastTab.newValue;
+            }
+            if (changes.mode) {
+                document.querySelector(`input[name="mode"][value="${changes.mode.newValue}"]`).checked = true;
+                const settings = await getCombinedSettings();
+                await updateControlSectionsVisibility(settings.mode, settings);
+            } else if (changes.firstAudibleTabId || changes.whitelistedTabId) {
+                const settings = await getCombinedSettings();
+                await updateControlSectionsVisibility(settings.mode, settings);
+            }
         });
     };
 
     const initialize = async () => {
         const [syncSettings, sessionSettings, localSettings] = await Promise.all([
-            chrome.storage.sync.get({ mode: 'active', isExtensionEnabled: true, isAllMuted: false, rememberLastTab: false }),
+            chrome.storage.sync.get({ mode: 'active', isExtensionEnabled: true, isAllMuted: false, rememberLastTab: false, defaultMode: null, defaultMuteAll: false }),
             chrome.storage.session.get(['firstAudibleTabId', 'whitelistedTabId', 'popupTabsData']),
             chrome.storage.local.get({ stm_lang: 'en' })
         ]);
@@ -242,7 +333,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector(`input[name="mode"][value="${settings.mode}"]`).checked = true;
         document.getElementById('lang-en').classList.toggle('active', currentLanguage === 'en');
         document.getElementById('lang-ru').classList.toggle('active', currentLanguage === 'ru');
-
+        
+        updateDefaultModeUI(settings.defaultMode);
+        updateDefaultMuteAllUI(settings.defaultMuteAll);
         applyLocalization();
         await updateControlSectionsVisibility(settings.mode, settings);
         await updateShortcutTooltips();

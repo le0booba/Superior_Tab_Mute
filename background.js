@@ -71,7 +71,7 @@ const applyMutingRules = async (activeTabId = null, providedSettings = null) => 
             if (targetTab.mutedInfo?.muted) {
                 await chrome.tabs.update(tabToUnmuteId, { muted: false }).catch(e => console.warn(`Could not unmute tab ${tabToUnmuteId}: ${e.message}`));
             }
-        } catch (e) { /* Tab might have closed */ }
+        } catch (e) {}
     }
 };
 
@@ -105,15 +105,17 @@ const updatePopupData = async () => {
 const handleInstall = (details) => {
     if (details.reason === 'install') {
         chrome.storage.sync.set({ mode: 'active', isExtensionEnabled: true, isAllMuted: false, rememberLastTab: false });
-        chrome.storage.session.set({ firstAudibleTabId: null, whitelistedTabId: null });
+        chrome.storage.session.set({ firstAudibleTabId: null, whitelistedTabId: null, muteNewInitialTabIds: [] });
     }
     updatePopupData();
 };
 
 const handleTabCreation = async (tab) => {
     const { mode, isExtensionEnabled, isAllMuted } = await getCombinedSettings();
-    if (isExtensionEnabled && !isAllMuted && mode === 'mute-new' && isManageableTab(tab)) {
-        chrome.tabs.update(tab.id, { muted: true }).catch((e) => console.warn(`Could not update tab ${tab.id}: ${e.message}`));
+    if (isExtensionEnabled && isManageableTab(tab)) {
+        if (isAllMuted || mode === 'mute-new') {
+            chrome.tabs.update(tab.id, { muted: true }).catch((e) => console.warn(`Could not update new tab ${tab.id}: ${e.message}`));
+        }
     }
     updatePopupData();
 };
@@ -121,6 +123,7 @@ const handleTabCreation = async (tab) => {
 const handleTabActivation = async ({ tabId, windowId }) => {
     const settings = await getCombinedSettings();
     if (!settings.isExtensionEnabled || settings.isAllMuted) return;
+
     if (settings.mode === 'active') {
         const manageableTabsInWindow = (await chrome.tabs.query({ windowId })).filter(isManageableTab);
         const updatePromises = manageableTabsInWindow.map(tab => {
@@ -131,34 +134,38 @@ const handleTabActivation = async ({ tabId, windowId }) => {
             return null;
         }).filter(Boolean);
         await Promise.all(updatePromises);
-        return;
-    }
-    if (settings.mode === 'first-sound' && !settings.firstAudibleTabId) {
+    } else if (settings.mode === 'first-sound' && !settings.firstAudibleTabId) {
         try {
             const activatedTab = await chrome.tabs.get(tabId);
             if (activatedTab?.audible) {
                 await chrome.storage.session.set({ firstAudibleTabId: activatedTab.id });
-                return;
             }
         } catch (e) { console.warn(`Could not get activated tab ${tabId}: ${e.message}`); }
     }
-    debouncedApplyMutingRules(tabId, settings);
 };
 
 const handleTabUpdate = async (tabId, changeInfo) => {
     if (changeInfo.audible !== undefined || changeInfo.title !== undefined || changeInfo.favIconUrl !== undefined) {
         updatePopupData();
     }
+
     const settings = await getCombinedSettings();
-    if (!settings.isExtensionEnabled) return;
+    if (!settings.isExtensionEnabled || settings.isAllMuted) return;
+
     if (changeInfo.audible === true) {
-        if (settings.mode === 'first-sound' && !settings.firstAudibleTabId) {
-            const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            if (activeTab?.id === tabId) {
-                await chrome.storage.session.set({ firstAudibleTabId: tabId });
-                return;
-            }
+        const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+        if (settings.mode === 'first-sound' && !settings.firstAudibleTabId && activeTab?.id === tabId) {
+            await chrome.storage.session.set({ firstAudibleTabId: tabId });
+            return;
         }
+
+        const tabToUnmuteId = await getUnmuteTargetId(settings, activeTab?.id);
+
+        if (tabId !== tabToUnmuteId) {
+            chrome.tabs.update(tabId, { muted: true }).catch(e => console.warn(`Immediate mute failed for tab ${tabId}: ${e.message}`));
+        }
+        
         debouncedApplyMutingRules();
     }
 };
@@ -188,12 +195,46 @@ const handleTabRemoval = async (tabId) => {
 };
 
 const handleStorageChange = async (changes) => {
-    const needsRuleUpdate = ['mode', 'isExtensionEnabled', 'isAllMuted', 'firstAudibleTabId', 'whitelistedTabId'].some(key => key in changes);
-    if (needsRuleUpdate) debouncedApplyMutingRules();
-    if ('isExtensionEnabled' in changes || 'isAllMuted' in changes) updateExtensionIcon();
+    const muteTab = (tabId) => chrome.tabs.update(tabId, { muted: true }).catch(() => {});
+    const unmuteTab = (tabId) => chrome.tabs.update(tabId, { muted: false }).catch(() => {});
+
+    if (changes.firstAudibleTabId || changes.whitelistedTabId) {
+        const { oldValue, newValue } = changes.firstAudibleTabId || changes.whitelistedTabId;
+        if (oldValue) muteTab(oldValue);
+        if (newValue) unmuteTab(newValue);
+        return;
+    }
+
+    if (changes.isAllMuted) {
+        if (changes.isAllMuted.newValue === false) {
+            const { mode } = await chrome.storage.sync.get('mode');
+            if (mode === 'mute-new') {
+                const { muteNewInitialTabIds = [] } = await chrome.storage.session.get('muteNewInitialTabIds');
+                const currentlyMutedTabs = await chrome.tabs.query({ muted: true });
+                const tabsToUnmute = currentlyMutedTabs.filter(tab => muteNewInitialTabIds.includes(tab.id));
+                await setMuteStatusForTabs(tabsToUnmute, false);
+            } else {
+                applyMutingRules();
+            }
+        } else {
+            applyMutingRules();
+        }
+    } else if (changes.mode || changes.isExtensionEnabled) {
+        debouncedApplyMutingRules();
+    }
+
+    if ('isExtensionEnabled' in changes || 'isAllMuted' in changes) {
+        updateExtensionIcon();
+    }
+
     if (changes.mode) {
         const newMode = changes.mode.newValue;
-        if (newMode === 'first-sound') {
+        if (newMode === 'mute-new') {
+            const manageableTabs = (await chrome.tabs.query({})).filter(isManageableTab);
+            const initialIds = manageableTabs.map(tab => tab.id);
+            await chrome.storage.session.set({ muteNewInitialTabIds: initialIds });
+            await setMuteStatusForTabs(manageableTabs, false);
+        } else if (newMode === 'first-sound') {
             const { firstAudibleTabId } = await chrome.storage.session.get('firstAudibleTabId');
             if (firstAudibleTabId) {
                 try { await chrome.tabs.get(firstAudibleTabId); } catch (e) {
@@ -210,9 +251,6 @@ const handleStorageChange = async (changes) => {
                     await chrome.storage.session.remove('whitelistedTabId');
                 }
             }
-        } else if (newMode === 'mute-new') {
-            const manageableTabs = (await chrome.tabs.query({})).filter(isManageableTab);
-            await setMuteStatusForTabs(manageableTabs, false);
         }
     }
 };
@@ -241,6 +279,8 @@ const handleRuntimeMessage = (message) => {
     if (message.action === 'resetMuteNew') {
         const unmuteAllAndReset = async () => {
             const manageableTabs = (await chrome.tabs.query({})).filter(isManageableTab);
+            const initialIds = manageableTabs.map(tab => tab.id);
+            await chrome.storage.session.set({ muteNewInitialTabIds: initialIds });
             await setMuteStatusForTabs(manageableTabs, false);
         };
         unmuteAllAndReset();
@@ -257,5 +297,20 @@ chrome.storage.onChanged.addListener(handleStorageChange);
 chrome.commands.onCommand.addListener(handleCommand);
 chrome.runtime.onMessage.addListener(handleRuntimeMessage);
 
-updateExtensionIcon();
-updatePopupData();
+const startup = async () => {
+    const { defaultMode, defaultMuteAll } = await chrome.storage.sync.get({ defaultMode: null, defaultMuteAll: false });
+
+    if (defaultMuteAll) {
+        await chrome.storage.sync.set({ isAllMuted: true });
+    }
+
+    if (defaultMode) {
+        await chrome.storage.sync.set({ mode: defaultMode });
+    }
+
+    updateExtensionIcon();
+    updatePopupData();
+    applyMutingRules();
+};
+
+startup();

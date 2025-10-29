@@ -92,7 +92,17 @@ body {
     display: inline-flex;
     align-items: center;
     height: 22px;
+}
+
+.toggle-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 12px;
+}
+
+.toggle-option .toggle-switch {
+    margin-bottom: 0;
 }
 
 .toggle-switch input {
@@ -157,11 +167,40 @@ input:checked+.slider:before {
     margin-right: 6px;
 }
 
+.mode-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
 #mode-form label {
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
     cursor: pointer;
+    margin-bottom: 0;
+}
+
+.set-default-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--text-muted);
+    padding: 0 4px;
+    line-height: 1;
+}
+
+#set-default-mute-all {
+    margin-right: 8px;
+}
+
+.set-default-btn:hover {
+    color: var(--text-primary);
+}
+
+.set-default-btn.active {
+    color: #B8E2FF;
 }
 
 input[type="radio"],
@@ -343,7 +382,7 @@ h4 {
 
 #clear-whitelist-btn {
     flex-shrink: 0;
-    width: 32px;
+    width: 28px;
     height: 28px;
     font-size: 12px;
     color: var(--toggle-handle);
@@ -384,7 +423,7 @@ h4 {
     color: #2980b9;
     margin-top: 2px;
     display: inline-block;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: monaco, "andale mono", "lucida console", "courier new", monospace;
 }
 
 .show-all-tabs-label {
