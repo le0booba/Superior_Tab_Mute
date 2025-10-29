@@ -113,7 +113,7 @@ const handleInstall = (details) => {
 const handleTabCreation = async (tab) => {
     const { mode, isExtensionEnabled, isAllMuted } = await getCombinedSettings();
     if (isExtensionEnabled && isManageableTab(tab)) {
-        if (isAllMuted || mode === 'mute-new') {
+        if (isAllMuted || mode === 'mute-new' || !tab.active) {
             chrome.tabs.update(tab.id, { muted: true }).catch((e) => console.warn(`Could not update new tab ${tab.id}: ${e.message}`));
         }
     }
@@ -140,7 +140,7 @@ const handleTabActivation = async ({ tabId, windowId }) => {
             if (activatedTab?.audible) {
                 await chrome.storage.session.set({ firstAudibleTabId: activatedTab.id });
             }
-        } catch (e) { console.warn(`Could not get activated tab ${tabId}: ${e.message}`); }
+        } catch (e) { console.warn(`Could not get activated tab ${tab.id}: ${e.message}`); }
     }
 };
 
