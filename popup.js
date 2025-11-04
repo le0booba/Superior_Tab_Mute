@@ -15,12 +15,13 @@ document.addEventListener('DOMContentLoaded', () => {
             sourceClosed: 'Source tab has been closed.',
             sourcePrefix: 'SOURCE:',
             by: 'by',
-            github: '⮺ GitHub',
-            rememberLastTab: 'Remember previous source',
+            github: 'GitHub.com',
+            rememberLastTab: 'Remember last source',
             rememberLastTabDesc: 'If the source tab goes silent, auto-switch to the last audible tab.',
             resetMuteNew: '🗔 Reset Mute on All Tabs',
             resetSuccess: '✅ d o n e',
-            clearSource: 'Clear sound source'
+            clearSource: 'Clear sound source',
+            expandOptionsTooltip: 'Show/hide additional options'
         },
         ru: {
             muteAll: '🔇 Заглушить все',
@@ -35,12 +36,13 @@ document.addEventListener('DOMContentLoaded', () => {
             noSoundSource: 'Источник звука не назначен.',
             sourceClosed: 'Вкладка-источник закрыта.',
             sourcePrefix: 'ИСТОЧНИК:',
-            github: '⮺ GitHub',
-            rememberLastTab: 'Помнить пред. источник',
+            github: 'GitHub.com',
+            rememberLastTab: 'Помнить источник',
             rememberLastTabDesc: 'Если источник затихнет, автоматически переключиться на последнюю вкладку со звуком.',
             resetMuteNew: '🗔 Сбросить обеззвучивание',
             resetSuccess: '✅ Готово!',
-            clearSource: 'Очистить источник звука'
+            clearSource: 'Очистить источник звука',
+            expandOptionsTooltip: 'Показать/скрыть дополнительные опции'
         }
     };
     let currentLanguage = 'en';
@@ -70,6 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
         githubLink: document.getElementById('github-link'),
         rememberOptionWrapper: document.getElementById('remember-option-wrapper'),
         rememberLastTabToggle: document.getElementById('remember-last-tab-toggle'),
+        expandSettingsBtn: document.getElementById('expand-settings-btn'),
+        expandableContentFS: document.querySelector('#first-sound-controls .expandable-content'),
     };
 
     const getLocaleString = (key) => LOCALES[currentLanguage]?.[key] || LOCALES.en[key];
@@ -170,16 +174,40 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTabsList({ container: DOM.audibleTabsList, tabs: tabsToList, selectedId: whitelistedTabId });
     };
 
-    const updateControlSectionsVisibility = async (mode, settings) => {
-        const showRememberOption = mode === 'first-sound' || mode === 'whitelist';
-        DOM.rememberOptionWrapper.classList.toggle('hidden', !showRememberOption);
+    const updateExpansionUI = (mode, state) => {
+        let isFullyExpanded = false;
+        if (mode === 'first-sound') {
+            DOM.expandableContentFS.classList.toggle('hidden', state < 1);
+            DOM.rememberOptionWrapper.classList.toggle('hidden', state < 2);
+            isFullyExpanded = state === 2;
+        } else if (mode === 'whitelist') {
+            DOM.rememberOptionWrapper.classList.toggle('hidden', state < 1);
+            isFullyExpanded = state > 0;
+        }
+        DOM.expandSettingsBtn.textContent = isFullyExpanded ? '▲' : '▼';
+    };
+
+    const updateControlSectionsVisibility = async (mode, settings, expansionStates) => {
+        const isExpandableMode = mode === 'first-sound' || mode === 'whitelist';
+        DOM.expandSettingsBtn.classList.toggle('hidden', !isExpandableMode);
+        DOM.modeForm.classList.toggle('has-expandable-options', isExpandableMode);
+
         DOM.firstSoundControls.classList.toggle('hidden', mode !== 'first-sound');
         DOM.whitelistControls.classList.toggle('hidden', mode !== 'whitelist');
         DOM.muteNewControls.classList.toggle('hidden', mode !== 'mute-new');
+        
+        DOM.rememberOptionWrapper.classList.add('hidden');
+
+        if (isExpandableMode) {
+            const currentState = expansionStates[mode] || 0;
+            updateExpansionUI(mode, currentState);
+        }
 
         if (mode === 'first-sound') {
             await updateFirstSoundDisplay(settings.firstAudibleTabId);
-            await refreshFirstSoundList(settings.firstAudibleTabId);
+            if ((expansionStates['first-sound'] || 0) > 0) {
+                await refreshFirstSoundList(settings.firstAudibleTabId);
+            }
         } else if (mode === 'whitelist') {
             await refreshWhitelist(settings.whitelistedTabId);
         }
@@ -209,8 +237,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('lang-en').classList.toggle('active', lang === 'en');
         document.getElementById('lang-ru').classList.toggle('active', lang === 'ru');
         applyLocalization();
-        const { mode, firstAudibleTabId, whitelistedTabId } = await getCombinedSettings();
-        await updateControlSectionsVisibility(mode, { firstAudibleTabId, whitelistedTabId });
+        const { mode, firstAudibleTabId, whitelistedTabId, expansionStates } = await getCombinedSettings();
+        await updateControlSectionsVisibility(mode, { firstAudibleTabId, whitelistedTabId }, expansionStates || {});
     };
 
     const getCombinedSettings = async () => {
@@ -284,47 +312,59 @@ document.addEventListener('DOMContentLoaded', () => {
             const { defaultMuteAll } = await chrome.storage.sync.get({ defaultMuteAll: false });
             chrome.storage.sync.set({ defaultMuteAll: !defaultMuteAll });
         });
+        
+        DOM.expandSettingsBtn.addEventListener('click', async () => {
+            const mode = document.querySelector('input[name="mode"]:checked').value;
+            let { expansionStates = {} } = await chrome.storage.session.get({ expansionStates: {} });
+            
+            let currentState = expansionStates[mode] || 0;
+            const maxState = mode === 'whitelist' ? 2 : 3;
+            
+            currentState = (currentState + 1) % maxState;
+            expansionStates[mode] = currentState;
+
+            await chrome.storage.session.set({ expansionStates });
+            updateExpansionUI(mode, currentState);
+        });
 
         chrome.storage.onChanged.addListener(async (changes) => {
-            if (changes.popupTabsData) {
-                popupTabsData = changes.popupTabsData.newValue || [];
-            }
-            if (changes.defaultMode) {
-                updateDefaultModeUI(changes.defaultMode.newValue);
-            }
-            if (changes.defaultMuteAll) {
-                updateDefaultMuteAllUI(changes.defaultMuteAll.newValue);
-            }
-            if (changes.isExtensionEnabled) {
-                DOM.masterToggle.checked = changes.isExtensionEnabled.newValue;
-                DOM.controlsWrapper.classList.toggle('disabled', !changes.isExtensionEnabled.newValue);
-            }
-            if (changes.isAllMuted) {
-                DOM.muteAllToggle.checked = changes.isAllMuted.newValue;
-            }
-            if (changes.rememberLastTab) {
-                DOM.rememberLastTabToggle.checked = changes.rememberLastTab.newValue;
-            }
+            if (changes.popupTabsData) popupTabsData = changes.popupTabsData.newValue || [];
+            if (changes.defaultMode) updateDefaultModeUI(changes.defaultMode.newValue);
+            if (changes.defaultMuteAll) updateDefaultMuteAllUI(changes.defaultMuteAll.newValue);
+            
+            if (changes.isExtensionEnabled) DOM.masterToggle.checked = changes.isExtensionEnabled.newValue;
+            if (changes.isAllMuted) DOM.muteAllToggle.checked = changes.isAllMuted.newValue;
+            if (changes.rememberLastTab) DOM.rememberLastTabToggle.checked = changes.rememberLastTab.newValue;
+
+            const fullSettings = await getCombinedSettings();
+            let expansionStates = fullSettings.expansionStates || {};
+            
             if (changes.mode) {
                 document.querySelector(`input[name="mode"][value="${changes.mode.newValue}"]`).checked = true;
-                const settings = await getCombinedSettings();
-                await updateControlSectionsVisibility(settings.mode, settings);
-            } else if (changes.firstAudibleTabId || changes.whitelistedTabId) {
-                const settings = await getCombinedSettings();
-                await updateControlSectionsVisibility(settings.mode, settings);
+                if (expansionStates[changes.mode.newValue] === undefined) {
+                    expansionStates[changes.mode.newValue] = 0;
+                }
+                await chrome.storage.session.set({ expansionStates });
             }
+
+            if (changes.isExtensionEnabled) {
+                DOM.controlsWrapper.classList.toggle('disabled', !changes.isExtensionEnabled.newValue);
+            }
+            
+            await updateControlSectionsVisibility(fullSettings.mode, fullSettings, expansionStates);
         });
     };
 
     const initialize = async () => {
         const [syncSettings, sessionSettings, localSettings] = await Promise.all([
             chrome.storage.sync.get({ mode: 'active', isExtensionEnabled: true, isAllMuted: false, rememberLastTab: false, defaultMode: null, defaultMuteAll: false }),
-            chrome.storage.session.get(['firstAudibleTabId', 'whitelistedTabId', 'popupTabsData']),
+            chrome.storage.session.get(['firstAudibleTabId', 'whitelistedTabId', 'popupTabsData', 'expansionStates']),
             chrome.storage.local.get({ stm_lang: 'en' })
         ]);
         currentLanguage = localSettings.stm_lang;
         popupTabsData = sessionSettings.popupTabsData || [];
         const settings = { ...syncSettings, ...sessionSettings };
+        const expansionStates = sessionSettings.expansionStates || {};
 
         DOM.masterToggle.checked = settings.isExtensionEnabled;
         DOM.muteAllToggle.checked = settings.isAllMuted;
@@ -337,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDefaultModeUI(settings.defaultMode);
         updateDefaultMuteAllUI(settings.defaultMuteAll);
         applyLocalization();
-        await updateControlSectionsVisibility(settings.mode, settings);
+        await updateControlSectionsVisibility(settings.mode, settings, expansionStates);
         await updateShortcutTooltips();
         bindEventListeners();
         document.body.style.opacity = 1;

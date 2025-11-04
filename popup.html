@@ -25,8 +25,16 @@
         </header>
 
         <div class="lang-switcher">
-            <button class="lang-btn" id="lang-en" type="button">🇺🇸</button>
-            <button class="lang-btn" id="lang-ru" type="button">🇷🇺</button>
+            <button class="lang-btn" id="lang-en" type="button">
+                <svg viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="currentColor">EN</text>
+                </svg>
+            </button>
+            <button class="lang-btn" id="lang-ru" type="button">
+                <svg viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="currentColor">RU</text>
+                </svg>
+            </button>
         </div>
 
         <div class="master-toggle-container" data-command-name="toggle-extension">
@@ -88,11 +96,13 @@
                     <button id="clear-source-btn" type="button" data-locale-title="clearSource" title="Clear sound source">☓</button>
                 </div>
                 <div id="current-sound-source-display" class="current-sound-source-display"></div>
-                <label class="show-all-tabs-label">
-                    <input type="checkbox" id="show-all-tabs-first-sound">
-                    <span data-locale="showAllTabs"></span>
-                </label>
-                <ul id="first-sound-tabs-list"></ul>
+                <div class="expandable-content hidden">
+                    <label class="show-all-tabs-label">
+                        <input type="checkbox" id="show-all-tabs-first-sound">
+                        <span data-locale="showAllTabs"></span>
+                    </label>
+                    <ul id="first-sound-tabs-list"></ul>
+                </div>
             </div>
 
             <div id="whitelist-controls" class="hidden">
@@ -100,13 +110,16 @@
                     <h4 data-locale="selectTabToUnmute"></h4>
                     <button id="clear-whitelist-btn" type="button" data-locale-title="clearSource" title="Clear sound source">☓</button>
                 </div>
-                 <label class="show-all-tabs-label">
-                    <input type="checkbox" id="show-all-tabs-whitelist">
-                    <span data-locale="showAllTabs"></span>
-                </label>
-                <ul id="audible-tabs-list"></ul>
+                <div class="expandable-content">
+                    <label class="show-all-tabs-label">
+                        <input type="checkbox" id="show-all-tabs-whitelist">
+                        <span data-locale="showAllTabs"></span>
+                    </label>
+                    <ul id="audible-tabs-list"></ul>
+                </div>
             </div>
         </div>
+        <button id="expand-settings-btn" class="expand-btn hidden" data-locale-title="expandOptionsTooltip">▼</button>
     </div>
     <script src="popup.js"></script>
 </body>
