@@ -1,7 +1,7 @@
 # Superior Tab Mute
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/le0booba/Superior_Tab_Mute/refs/heads/main/screen-options-popup-main-1.png" alt="Superior Tab Mute Screenshot" width="230"/>
+   <img src="https://raw.githubusercontent.com/le0booba/Superior_Tab_Mute/refs/heads/main/screen-options-popup-main.png" alt="Superior Tab Mute Screenshot" width="230"/>
 
    **Intelligent Audio Control for Chrome**
 
@@ -45,10 +45,12 @@
 -   **Global Mute**: Silence all tabs instantly (`Alt+Shift+M`).
 -   **Set Sound Source**: Designate the current tab as the audio source in First Sound Mode (`Alt+Shift+E`).
 -   **Show All Tabs**: View and select from all available tabs, not just audible ones, in First Sound and Whitelist modes.
+-   **Expandable Options**: First Sound and Whitelist modes feature collapsible sections to reveal advanced settings and tab lists, keeping the interface clean and organized.
 
 ### 🧠 Intelligent Automation
 
 -   **Remember Last Source**: When enabled for "First Sound" or "Whitelist" mode, the extension automatically switches to previously audible tabs when your current source tab goes silent or is closed. This ensures seamless listening without manual intervention, intelligently prioritizing your listening experience by falling back to the most recently active audio source.
+-   **Default Settings on Startup**: Set your preferred mode and "Mute All" state as defaults. When Chrome starts, the extension automatically applies these settings, giving you a consistent experience every session. Mark any mode or the "Mute All" toggle with a star (★) to set it as your default.
 
 <details>
 <summary>🎨 User-Friendly Interface</summary>
@@ -58,17 +60,19 @@
 -   **Bilingual Support**: Instantly switch between English and Russian via the popup's language buttons.
 -   **Modern Dark Theme**: A sleek, eye-friendly design suitable for any environment.
 -   **Tooltip Shortcuts**: Hover over controls to see assigned keyboard shortcuts for quick access.
+-   **Collapsible Interface**: Expandable sections for First Sound and Whitelist modes keep the popup compact while providing access to detailed controls when needed.
 
 </details>
 
 <details>
-<summary>🔍 Advanced Functionality</summary>
+<summary>🔧 Advanced Functionality</summary>
 
 -   **Persistent & Synced Settings**: Core preferences sync across devices using your Chrome account.
 -   **Safe Handling**: Automatically ignores Chrome system pages (`chrome://`) and other extensions to prevent conflicts.
 -   **Error Recovery**: Intelligently handles closed tabs by clearing their status and automatically updating muting rules.
 -   **Smart Source Switching**: Automatically switches to alternative audio sources when the current source becomes unavailable.
 -   **Efficient Storage**: Uses appropriate storage mechanisms (sync, session, local) for different types of data.
+-   **Startup Configuration**: Applies your default mode and mute preferences automatically when Chrome launches.
 
 </details>
 
@@ -81,10 +85,16 @@
 
 2.  **Select a Mode**
     -   Choose your desired muting strategy: **Active Tab**, **First Sound**, **Whitelist**, or **Mute New Tabs** mode using the radio buttons.
-    -   For "First Sound" or "Whitelist" modes, use the tab list to select your audio source. You can enable "Show all tabs" for more options.
+    -   For "First Sound" or "Whitelist" modes, click the expand button (▼) to reveal additional options and tab lists.
+    -   Use the tab list to select your audio source. You can enable "Show all tabs" for more options.
     -   When using "First Sound" or "Whitelist" modes, check the **"Remember last source"** box to enable automatic source switching. The extension will seamlessly switch to previously audible tabs if your current source stops playing or closes.
 
-3.  **Use Keyboard Shortcuts**
+3.  **Set Default Behavior**
+    -   Click the star icon (☆) next to any mode or the "Mute All" toggle to set it as your default.
+    -   A filled star (★) indicates the current default setting.
+    -   Default settings are automatically applied when Chrome starts, ensuring consistent behavior across sessions.
+
+4.  **Use Keyboard Shortcuts**
     -   `Alt+Shift+S`: Toggle extension on/off
     -   `Alt+Shift+M`: Toggle mute all tabs
     -   `Alt+Shift+E`: Set current tab as sound source (First Sound mode)
@@ -117,6 +127,8 @@
 -   **`mode`** ('active', 'first-sound', 'whitelist', 'mute-new'): Defines the active muting mode.
 -   **`isAllMuted`** (true/false): Toggles the global mute state for all tabs.
 -   **`rememberLastTab`** (true/false): Remembers the preference for the "Remember Last Source" feature.
+-   **`defaultMode`** (string or null): Stores the user's preferred default mode to apply on startup.
+-   **`defaultMuteAll`** (true/false): Stores whether "Mute All" should be enabled by default on startup.
 -   *Purpose*: Ensures your core preferences are consistent across all your devices.
 
 </details>
@@ -128,6 +140,8 @@
 -   **`firstAudibleTabId`** (tab ID): Tracks the designated audio source tab in "First Sound Mode".
 -   **`whitelistedTabId`** (tab ID): Tracks the user-selected tab in "Whitelist Mode".
 -   **`popupTabsData`** (array of tab objects): Cached tab information for efficient popup rendering, including tab IDs, titles, favicons, and audible status.
+-   **`expansionStates`** (object): Remembers which expandable sections are open for each mode during the current session.
+-   **`muteNewInitialTabIds`** (array): Tracks tabs that existed when "Mute New Tabs" mode was activated, used to manage unmuting behavior.
 -   *Purpose*: Tab IDs are unique to each browser session and would be invalid across devices or after a restart, making session storage the ideal choice.
 
 </details>
@@ -137,8 +151,8 @@
 
 -   Settings that are persistent on the device but are not synced across accounts.
 -   **`stm_lang`** ('en'/'ru'): Remembers the language preference for the interface.
--   **`showAllTabsFirstSound`** ('true'/'false'): Remembers the "Show all tabs" checkbox state for First Sound Mode.
--   **`showAllTabsWhitelist`** ('true'/'false'): Remembers the "Show all tabs" checkbox state for Whitelist Mode.
+-   **`showAllTabsFirstSound`** (true/false): Remembers the "Show all tabs" checkbox state for First Sound Mode.
+-   **`showAllTabsWhitelist`** (true/false): Remembers the "Show all tabs" checkbox state for Whitelist Mode.
 -   *Purpose*: Allows for device-specific UI preferences, such as having different settings on your work and home computers.
 
 </details>
@@ -151,7 +165,7 @@
 <summary><strong>Problem: The extension isn't muting any tabs.</strong></summary>
 <blockquote>
 
-- **Check the Master Toggle**: Ensure the main toggle switch (⭘ / ⏽) in the popup is enabled (⏽).
+- **Check the Master Toggle**: Ensure the main toggle switch (⭘ / ⭕) in the popup is enabled (⭕).
 - **Check Global Mute**: Make sure the "Mute All Tabs" switch is not overriding your selected mode.
 - **Reload the Extension**: Go to `chrome://extensions/`, find Superior Tab Mute, and click the refresh icon.
 - **Restart Chrome**: A simple restart can resolve temporary issues.
@@ -201,18 +215,29 @@
 </blockquote>
 </details>
 
+<details>
+<summary><strong>Problem: My default settings aren't being applied on startup.</strong></summary>
+<blockquote>
+
+- **Verify Default Settings**: Open the popup and check if the star (★) icon is filled next to your preferred mode or "Mute All" toggle.
+- **Set Defaults Again**: Click the star icon to re-apply your default settings.
+- **Restart Chrome**: Close and reopen Chrome completely to test if defaults are applied on the next startup.
+
+</blockquote>
+</details>
+
 ---
 
 ## 📁 File Structure
 
 ```
 Superior_Tab_Mute/
-├── 📑 manifest.json         # Extension configuration and permissions
+├── 📋 manifest.json         # Extension configuration and permissions
 ├── 🔧 background.js         # Core muting logic and event handling
 ├── 🖹 popup.html            # The structure of the user interface
 ├── ⚙️ popup.js              # UI logic and user interactions
 ├── 🎨 popup.css             # Modern dark theme styling
-├── 🗁 icons/                # Extension status icons
+├── 🗂 icons/                # Extension status icons
 │   ├── 🖼️ icon16.png           # Default state
 │   ├── 🖼️ icon16_mute.png      # All tabs muted state
 │   ├── 🖼️ icon16_off.png       # Disabled state
