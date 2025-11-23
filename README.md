@@ -17,7 +17,7 @@
 ## 🚀 Installation
 
 1.  **Download the Extension**
-    -   Download the (https://github.com/le0booba/Superior_Tab_Mute/releases/latest) from GitHub.
+    -   Download the [LATEST RELEASE](https://github.com/le0booba/Superior_Tab_Mute/releases/latest) from GitHub.
     -   Unzip the downloaded file.
 
 2.  **Load in Chrome**
