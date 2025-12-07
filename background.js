@@ -8,7 +8,7 @@ const debounce = (func, delay) => {
 
 const getCombinedSettings = async () => {
     const [syncSettings, sessionSettings] = await Promise.all([
-        chrome.storage.sync.get(['mode', 'isExtensionEnabled', 'isAllMuted', 'rememberLastTab']),
+        chrome.storage.sync.get({ mode: 'active', isExtensionEnabled: true, isAllMuted: false, rememberLastTab: false }),
         chrome.storage.session.get(['firstAudibleTabId', 'whitelistedTabId'])
     ]);
     return { ...syncSettings, ...sessionSettings };
@@ -94,7 +94,7 @@ const updatePopupData = async () => {
     try {
         const allTabs = await chrome.tabs.query({});
         const manageableTabs = allTabs.filter(isManageableTab);
-        const format = (tab) => ({ id: tab.id, title: tab.title, favIconUrl: tab.favIconUrl, audible: tab.audible });
+        const format = (tab) => ({ id: tab.id, title: tab.title, favIconUrl: tab.favIconUrl, audible: tab.audible, url: tab.url });
         const popupTabsData = manageableTabs.map(format);
         await chrome.storage.session.set({ popupTabsData });
     } catch (error) {
@@ -102,12 +102,14 @@ const updatePopupData = async () => {
     }
 };
 
+const debouncedUpdatePopupData = debounce(updatePopupData, 150);
+
 const handleInstall = (details) => {
     if (details.reason === 'install') {
         chrome.storage.sync.set({ mode: 'active', isExtensionEnabled: true, isAllMuted: false, rememberLastTab: false });
         chrome.storage.session.set({ firstAudibleTabId: null, whitelistedTabId: null, muteNewInitialTabIds: [] });
     }
-    updatePopupData();
+    debouncedUpdatePopupData();
 };
 
 const handleTabCreation = async (tab) => {
@@ -118,7 +120,7 @@ const handleTabCreation = async (tab) => {
             chrome.tabs.update(tab.id, { muted: true }).catch((e) => console.warn(`Could not update new tab ${tab.id}: ${e.message}`));
         }
     }
-    updatePopupData();
+    debouncedUpdatePopupData();
 };
 
 const handleTabActivation = async ({ tabId, windowId }) => {
@@ -147,7 +149,7 @@ const handleTabActivation = async ({ tabId, windowId }) => {
 
 const handleTabUpdate = async (tabId, changeInfo) => {
     if (changeInfo.audible !== undefined || changeInfo.title !== undefined || changeInfo.favIconUrl !== undefined) {
-        updatePopupData();
+        debouncedUpdatePopupData();
     }
 
     const settings = await getCombinedSettings();
@@ -172,7 +174,7 @@ const handleTabUpdate = async (tabId, changeInfo) => {
 };
 
 const handleTabRemoval = async (tabId) => {
-    updatePopupData();
+    debouncedUpdatePopupData();
     const settings = await getCombinedSettings();
     if (!settings.isExtensionEnabled) return;
     const keyToUpdate = settings.mode === 'first-sound' ? 'firstAudibleTabId' : (settings.mode === 'whitelist' ? 'whitelistedTabId' : null);
@@ -276,13 +278,14 @@ const handleCommand = async (command) => {
     }
 };
 
-const handleRuntimeMessage = (message) => {
+const handleRuntimeMessage = (message, sender, sendResponse) => {
     if (message.action === 'resetMuteNew') {
         const unmuteAllAndReset = async () => {
             const manageableTabs = (await chrome.tabs.query({})).filter(isManageableTab);
             const initialIds = manageableTabs.map(tab => tab.id);
             await chrome.storage.session.set({ muteNewInitialTabIds: initialIds });
             await setMuteStatusForTabs(manageableTabs, false);
+            sendResponse({ success: true });
         };
         unmuteAllAndReset();
         return true;
@@ -290,6 +293,15 @@ const handleRuntimeMessage = (message) => {
 };
 
 chrome.runtime.onInstalled.addListener(handleInstall);
+chrome.runtime.onStartup.addListener(async () => {
+    const { defaultMode, defaultMuteAll } = await chrome.storage.sync.get({ defaultMode: null, defaultMuteAll: false });
+    if (defaultMuteAll) {
+        await chrome.storage.sync.set({ isAllMuted: true });
+    }
+    if (defaultMode) {
+        await chrome.storage.sync.set({ mode: defaultMode });
+    }
+});
 chrome.tabs.onCreated.addListener(handleTabCreation);
 chrome.tabs.onActivated.addListener(handleTabActivation);
 chrome.tabs.onUpdated.addListener(handleTabUpdate);
@@ -298,20 +310,6 @@ chrome.storage.onChanged.addListener(handleStorageChange);
 chrome.commands.onCommand.addListener(handleCommand);
 chrome.runtime.onMessage.addListener(handleRuntimeMessage);
 
-const startup = async () => {
-    const { defaultMode, defaultMuteAll } = await chrome.storage.sync.get({ defaultMode: null, defaultMuteAll: false });
-
-    if (defaultMuteAll) {
-        await chrome.storage.sync.set({ isAllMuted: true });
-    }
-
-    if (defaultMode) {
-        await chrome.storage.sync.set({ mode: defaultMode });
-    }
-
-    updateExtensionIcon();
-    updatePopupData();
-    applyMutingRules();
-};
-
-startup();
+updateExtensionIcon();
+updatePopupData();
+applyMutingRules();

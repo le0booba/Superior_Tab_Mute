@@ -15,11 +15,11 @@ document.addEventListener('DOMContentLoaded', () => {
             sourceClosed: 'Source tab has been closed.',
             sourcePrefix: 'SOURCE:',
             by: 'by',
-            github: 'GitHub.com',
+            github: 'GitHub',
             rememberLastTab: 'Remember last source',
             rememberLastTabDesc: 'If the source tab goes silent, auto-switch to the last audible tab.',
             resetMuteNew: '🗔 Reset Mute on All Tabs',
-            resetSuccess: '✅ d o n e',
+            resetSuccess: '✔',
             clearSource: 'Clear sound source',
             expandOptionsTooltip: 'Show/hide additional options'
         },
@@ -36,11 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
             noSoundSource: 'Источник звука не назначен.',
             sourceClosed: 'Вкладка-источник закрыта.',
             sourcePrefix: 'ИСТОЧНИК:',
-            github: 'GitHub.com',
+            github: 'GitHub',
             rememberLastTab: 'Помнить источник',
             rememberLastTabDesc: 'Если источник затихнет, автоматически переключиться на последнюю вкладку со звуком.',
             resetMuteNew: '🗔 Сбросить обеззвучивание',
-            resetSuccess: '✅ Готово!',
+            resetSuccess: '✔',
             clearSource: 'Очистить источник звука',
             expandOptionsTooltip: 'Показать/скрыть дополнительные опции'
         }
@@ -100,7 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderTabsList = ({ container, tabs, selectedId }) => {
         if (tabs.length === 0) {
-            container.innerHTML = `<li class="tab-list-item no-sound">${getLocaleString('noTabs')}</li>`;
+            container.textContent = '';
+            const li = document.createElement('li');
+            li.className = 'tab-list-item no-sound';
+            li.textContent = getLocaleString('noTabs');
+            container.appendChild(li);
             return;
         }
 
@@ -129,7 +133,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.className = 'tab-list-item';
                 li.dataset.tabId = tab.id;
                 if (tab.id === selectedId) li.classList.add('selected');
-                li.innerHTML = `<img class="tab-list-icon" src="${tab.favIconUrl || 'icons/icon16.png'}" alt=""><div class="tab-title-wrapper"><span class="tab-list-title" title="${tab.title || 'Untitled Tab'}">${tab.title || 'Untitled Tab'}</span></div>`;
+                
+                const img = document.createElement('img');
+                img.className = 'tab-list-icon';
+                img.src = tab.favIconUrl || 'icons/icon16.png';
+                img.alt = '';
+
+                const titleWrapper = document.createElement('div');
+                titleWrapper.className = 'tab-title-wrapper';
+
+                const span = document.createElement('span');
+                span.className = 'tab-list-title';
+                const titleText = tab.title || 'Untitled Tab';
+                span.title = titleText;
+                span.textContent = titleText;
+
+                titleWrapper.appendChild(span);
+                li.appendChild(img);
+                li.appendChild(titleWrapper);
                 fragment.appendChild(li);
             }
         });
@@ -139,33 +160,61 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateFirstSoundDisplay = async (firstAudibleTabId) => {
-        DOM.soundSourceDisplay.className = 'current-sound-source-display';
+        if (DOM.firstSoundControls.classList.contains('hidden')) return;
+
         if (!firstAudibleTabId) {
+            DOM.soundSourceDisplay.textContent = '';
+            DOM.soundSourceDisplay.className = 'current-sound-source-display';
             DOM.soundSourceDisplay.textContent = getLocaleString('noSoundSource');
             return;
         }
         try {
             const tab = await chrome.tabs.get(firstAudibleTabId);
-            DOM.soundSourceDisplay.innerHTML = `<img src="${tab.favIconUrl || 'icons/icon16.png'}" class="tab-list-icon" alt=""><span class="source-display-title">${getLocaleString('sourcePrefix')} ${tab.title}</span>`;
+            
+            DOM.soundSourceDisplay.textContent = '';
+            DOM.soundSourceDisplay.className = 'current-sound-source-display';
+
+            const img = document.createElement('img');
+            img.src = tab.favIconUrl || 'icons/icon16.png';
+            img.className = 'tab-list-icon';
+            img.alt = '';
+
+            const span = document.createElement('span');
+            span.className = 'source-display-title';
+            span.textContent = `${getLocaleString('sourcePrefix')} ${tab.title}`;
+
+            DOM.soundSourceDisplay.appendChild(img);
+            DOM.soundSourceDisplay.appendChild(span);
+            
             DOM.soundSourceDisplay.title = `${getLocaleString('sourcePrefix')} ${tab.title}`;
             DOM.soundSourceDisplay.classList.add('active');
         } catch (error) {
+            DOM.soundSourceDisplay.textContent = '';
+            DOM.soundSourceDisplay.className = 'current-sound-source-display';
             DOM.soundSourceDisplay.textContent = getLocaleString('sourceClosed');
             DOM.soundSourceDisplay.classList.add('error');
         }
     };
 
     const refreshFirstSoundList = async (firstAudibleTabId) => {
+        if (DOM.firstSoundControls.classList.contains('hidden') || DOM.expandableContentFS.classList.contains('hidden')) return;
+
         const { showAllTabsFirstSound: showAll } = await chrome.storage.local.get({ showAllTabsFirstSound: false });
         DOM.showAllTabsFirstSound.checked = showAll;
-        const tabsToList = showAll ? popupTabsData : popupTabsData.filter(t => t.audible);
+        
+        const allowedTabs = popupTabsData.filter(t => !t.url || !t.url.startsWith('https://chromewebstore.google.com/'));
+        const tabsToList = showAll ? allowedTabs : allowedTabs.filter(t => t.audible);
         renderTabsList({ container: DOM.firstSoundTabsList, tabs: tabsToList, selectedId: firstAudibleTabId });
     };
 
     const refreshWhitelist = async (whitelistedTabId) => {
+        if (DOM.whitelistControls.classList.contains('hidden')) return;
+
         const { showAllTabsWhitelist: showAll } = await chrome.storage.local.get({ showAllTabsWhitelist: false });
         DOM.showAllTabsWhitelist.checked = showAll;
-        let tabsToList = showAll ? popupTabsData : popupTabsData.filter(t => t.audible);
+        
+        const allowedTabs = popupTabsData.filter(t => !t.url || !t.url.startsWith('https://chromewebstore.google.com/'));
+        let tabsToList = showAll ? allowedTabs : allowedTabs.filter(t => t.audible);
 
         if (!showAll && whitelistedTabId && !tabsToList.some(t => t.id === whitelistedTabId)) {
             const whitelistedTabDetails = popupTabsData.find(t => t.id === whitelistedTabId);
