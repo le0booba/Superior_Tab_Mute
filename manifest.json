@@ -32,7 +32,7 @@
     },
     "toggle-mute-all": {
       "suggested_key": {
-        "default": "Alt+Shift+M"
+        "default": "Alt+Shift+A"
       },
       "description": "Toggle mute all tabs"
     },

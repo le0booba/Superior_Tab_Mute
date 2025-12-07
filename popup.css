@@ -75,7 +75,7 @@ body {
 
 .top-bar {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-evenly ;
     align-items: center;
     margin-top: 4px;
     margin-bottom: 8px;
@@ -115,7 +115,7 @@ body {
     position: relative;
     display: inline-flex;
     align-items: center;
-    height: 22px;
+    height: 18px;
 }
 
 .toggle-option {
@@ -140,19 +140,19 @@ body {
 .slider {
     position: relative;
     cursor: pointer;
-    width: 40px;
-    height: 22px;
+    width: 34px;
+    height: 18px;
     background: var(--toggle-bg);
     transition: .4s;
-    border-radius: 22px;
+    border-radius: 18px;
     will-change: background-color;
 }
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 16px;
-    width: 16px;
+    height: 12px;
+    width: 12px;
     left: 3px;
     bottom: 3px;
     background: var(--toggle-handle);
@@ -166,7 +166,7 @@ input:checked+.slider {
 }
 
 input:checked+.slider:before {
-    transform: translateX(18px);
+    transform: translateX(16px);
 }
 
 .toggle-label {
@@ -193,58 +193,10 @@ input:checked+.slider:before {
 
 .master-toggle-container .toggle-switch {
     margin: 0;
-    height: 18px;
-}
-
-.master-toggle-container .slider {
-    width: 34px;
-    height: 18px;
-    border-radius: 18px;
-}
-
-.master-toggle-container .slider:before {
-    height: 12px;
-    width: 12px;
-    left: 3px;
-    bottom: 3px;
-}
-
-.master-toggle-container input:checked+.slider:before {
-    transform: translateX(16px);
 }
 
 .toggle-option .toggle-switch[data-command-name="toggle-mute-all"] {
     margin-left: 8px;
-    height: 18px;
-}
-
-#remember-option-wrapper .toggle-switch {
-    height: 20px;
-}
-
-.toggle-option .toggle-switch[data-command-name="toggle-mute-all"] .slider {
-    width: 34px;
-    height: 18px;
-}
-
-#remember-option-wrapper .toggle-switch .slider {
-    width: 36px;
-    height: 20px;
-}
-
-.toggle-option .toggle-switch[data-command-name="toggle-mute-all"] .slider:before {
-    height: 12px;
-    width: 12px;
-}
-
-#remember-option-wrapper .toggle-switch .slider:before {
-    height: 14px;
-    width: 14px;
-}
-
-.toggle-option .toggle-switch[data-command-name="toggle-mute-all"] input:checked+.slider:before,
-#remember-option-wrapper .toggle-switch input:checked+.slider:before {
-    transform: translateX(16px);
 }
 
 .mode-option {
