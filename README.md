@@ -62,7 +62,6 @@
 -   **Efficient Storage**: Uses appropriate storage mechanisms (sync, session, local) for different types of data.
 -   **Startup Configuration**: Applies your default mode and mute preferences automatically when Chrome launches.
 -   **Optimized Performance**: Uses debounced updates and efficient DOM manipulation for smooth operation.
--   **Collapsible Interface**: Expandable sections for First Sound and Whitelist modes keep the popup compact while providing access to detailed controls when needed.
 
 </details>
 
