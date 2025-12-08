@@ -70,7 +70,7 @@
 ## 📖 Usage Guide
 
 1.  **Open the Popup**
-    -   Click the Superior Tab Mute icon in Chrome's toolbar to access the control panel.
+    -   Click the Superior Tab Mute icon in Chrome's toolbar to access the main controls.
 
 2.  **Select a Mode**
     -   Choose your desired muting strategy: **Active Tab**, **First Sound**, **Whitelist**, or **Mute New Tabs** mode using the radio buttons.
