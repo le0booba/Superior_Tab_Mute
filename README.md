@@ -1,7 +1,7 @@
 # Superior Tab Mute
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/le0booba/Superior_Tab_Mute/refs/heads/main/screen-options-popup-main.png" alt="Superior Tab Mute Screenshot" width="230"/>
+   <img src="https://raw.githubusercontent.com/le0booba/Superior_Tab_Mute/refs/heads/main/screen-options-popup.png" alt="Superior Tab Mute Screenshot" width="230"/>
 
    **Intelligent Audio Control for Chrome**
 
@@ -42,10 +42,10 @@
 ### ⚡ Instant Controls
 
 -   **Master Toggle**: Enable or disable the extension with a single click or shortcut (`Alt+Shift+S`).
--   **Global Mute**: Silence all tabs instantly (`Alt+Shift+M`).
+-   **Global Mute**: Silence all tabs instantly (`Alt+Shift+A`).
 -   **Set Sound Source**: Designate the current tab as the audio source in First Sound Mode (`Alt+Shift+E`).
 -   **Show All Tabs**: View and select from all available tabs, not just audible ones, in First Sound and Whitelist modes.
--   **Expandable Options**: First Sound and Whitelist modes feature collapsible sections to reveal advanced settings and tab lists, keeping the interface clean and organized.
+-   **Expandable Options**: First Sound and Whitelist modes feature collapsible sections to reveal advanced settings and tab lists, keeping the interface clean and organized. Click the expand button (▼) to toggle additional controls.
 
 ### 🧠 Intelligent Automation
 
@@ -73,6 +73,7 @@
 -   **Smart Source Switching**: Automatically switches to alternative audio sources when the current source becomes unavailable.
 -   **Efficient Storage**: Uses appropriate storage mechanisms (sync, session, local) for different types of data.
 -   **Startup Configuration**: Applies your default mode and mute preferences automatically when Chrome launches.
+-   **Optimized Performance**: Uses debounced updates and efficient DOM manipulation for smooth operation.
 
 </details>
 
@@ -85,7 +86,7 @@
 
 2.  **Select a Mode**
     -   Choose your desired muting strategy: **Active Tab**, **First Sound**, **Whitelist**, or **Mute New Tabs** mode using the radio buttons.
-    -   For "First Sound" or "Whitelist" modes, click the expand button (▼) to reveal additional options and tab lists.
+    -   For "First Sound" or "Whitelist" modes, click the expand button (▼) at the bottom of the popup to reveal additional options and tab lists. Click again to show more options.
     -   Use the tab list to select your audio source. You can enable "Show all tabs" for more options.
     -   When using "First Sound" or "Whitelist" modes, check the **"Remember last source"** box to enable automatic source switching. The extension will seamlessly switch to previously audible tabs if your current source stops playing or closes.
 
@@ -96,7 +97,7 @@
 
 4.  **Use Keyboard Shortcuts**
     -   `Alt+Shift+S`: Toggle extension on/off
-    -   `Alt+Shift+M`: Toggle mute all tabs
+    -   `Alt+Shift+A`: Toggle mute all tabs
     -   `Alt+Shift+E`: Set current tab as sound source (First Sound mode)
     -   Hover over controls in the popup to see their shortcuts
     -   Customize shortcuts at `chrome://extensions/shortcuts`
@@ -139,7 +140,7 @@
 -   Temporary settings that are cleared when the browser is closed.
 -   **`firstAudibleTabId`** (tab ID): Tracks the designated audio source tab in "First Sound Mode".
 -   **`whitelistedTabId`** (tab ID): Tracks the user-selected tab in "Whitelist Mode".
--   **`popupTabsData`** (array of tab objects): Cached tab information for efficient popup rendering, including tab IDs, titles, favicons, and audible status.
+-   **`popupTabsData`** (array of tab objects): Cached tab information for efficient popup rendering, including tab IDs, titles, favicons, audible status, and URLs.
 -   **`expansionStates`** (object): Remembers which expandable sections are open for each mode during the current session.
 -   **`muteNewInitialTabIds`** (array): Tracks tabs that existed when "Mute New Tabs" mode was activated, used to manage unmuting behavior.
 -   *Purpose*: Tab IDs are unique to each browser session and would be invalid across devices or after a restart, making session storage the ideal choice.
@@ -222,6 +223,17 @@
 - **Verify Default Settings**: Open the popup and check if the star (★) icon is filled next to your preferred mode or "Mute All" toggle.
 - **Set Defaults Again**: Click the star icon to re-apply your default settings.
 - **Restart Chrome**: Close and reopen Chrome completely to test if defaults are applied on the next startup.
+
+</blockquote>
+</details>
+
+<details>
+<summary><strong>Problem: The expandable sections aren't working as expected.</strong></summary>
+<blockquote>
+
+- **Check the Mode**: Expandable sections only work in "First Sound" and "Whitelist" modes.
+- **Click the Expand Button**: Ensure you're clicking the ▼ button at the bottom of the popup, not within a specific section.
+- **Cycle Through States**: The expand button cycles through different visibility states (0: hidden, 1: show tab list, 2: show tab list + remember option). Keep clicking to cycle through all options.
 
 </blockquote>
 </details>
