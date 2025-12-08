@@ -53,18 +53,6 @@
 -   **Default Settings on Startup**: Set your preferred mode and "Mute All" state as defaults. When Chrome starts, the extension automatically applies these settings, giving you a consistent experience every session. Mark any mode or the "Mute All" toggle with a star (★) to set it as your default.
 
 <details>
-<summary>🎨 User-Friendly Interface</summary>
-
--   **Dynamic Status Icons**: The extension icon changes to reflect the current state (active, muted, or disabled).
--   **Real-Time Tab List**: Displays tabs with audio or all tabs, complete with favicons and full title previews on hover.
--   **Bilingual Support**: Instantly switch between English and Russian via the popup's language buttons.
--   **Modern Dark Theme**: A sleek, eye-friendly design suitable for any environment.
--   **Tooltip Shortcuts**: Hover over controls to see assigned keyboard shortcuts for quick access.
--   **Collapsible Interface**: Expandable sections for First Sound and Whitelist modes keep the popup compact while providing access to detailed controls when needed.
-
-</details>
-
-<details>
 <summary>🔧 Advanced Functionality</summary>
 
 -   **Persistent & Synced Settings**: Core preferences sync across devices using your Chrome account.
@@ -74,6 +62,7 @@
 -   **Efficient Storage**: Uses appropriate storage mechanisms (sync, session, local) for different types of data.
 -   **Startup Configuration**: Applies your default mode and mute preferences automatically when Chrome launches.
 -   **Optimized Performance**: Uses debounced updates and efficient DOM manipulation for smooth operation.
+-   **Collapsible Interface**: Expandable sections for First Sound and Whitelist modes keep the popup compact while providing access to detailed controls when needed.
 
 </details>
 
