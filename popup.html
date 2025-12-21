@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Superior Tab Mute</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-icon-title">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="12" fill="#27ae60"/>
+                    <path d="M6 17v-2a6 6 0 0 1 12 0v2" stroke="#fff" stroke-width="2" fill="none"/>
+                    <rect x="4" y="15" width="4" height="6" rx="2" fill="#fff"/>
+                    <rect x="16" y="15" width="4" height="6" rx="2" fill="#fff"/>
+                </svg>
+            </div>
+            <div class="app-info">
+                <span id="version-info"></span>
+                <span id="author-info"></span>
+                <a id="github-link" href="https://github.com/le0booba/Superior_Tab_Mute" target="_blank" rel="noopener noreferrer"></a>
+            </div>
+        </header>
+
+        <div class="top-bar">
+            <div class="lang-switcher">
+                <button class="lang-btn" id="lang-en" type="button">
+                    <svg viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="currentColor">EN</text>
+                    </svg>
+                </button>
+                <button class="lang-btn" id="lang-ru" type="button">
+                    <svg viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="currentColor">RU</text>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="master-toggle-container" data-command-name="toggle-extension">
+                <span class="master-toggle-icon">⭘</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="master-toggle-switch">
+                    <span class="slider"></span>
+                </label>
+                <span class="master-toggle-icon">⏽</span>
+            </div>
+        </div>
+
+        <div id="controls-wrapper">
+            <div class="toggle-option">
+                <label class="toggle-switch" data-command-name="toggle-mute-all">
+                    <input type="checkbox" id="mute-all-toggle-switch">
+                    <span class="slider"></span>
+                    <span class="toggle-label" data-locale="muteAll"></span>
+                </label>
+                <button class="set-default-btn" id="set-default-mute-all" title="Set as default">☆</button>
+            </div>
+
+            <fieldset id="mode-form">
+                <legend class="sr-only">Muting Mode</legend>
+                <div class="mode-option">
+                    <label><input type="radio" name="mode" value="active"><span data-locale="modeActive"></span></label>
+                    <button class="set-default-btn" data-mode="active" title="Set as default">☆</button>
+                </div>
+                <div class="mode-option">
+                    <label><input type="radio" name="mode" value="first-sound"><span data-locale="modeFirstSound"></span></label>
+                    <button class="set-default-btn" data-mode="first-sound" title="Set as default">☆</button>
+                </div>
+                <div class="mode-option">
+                    <label><input type="radio" name="mode" value="whitelist"><span data-locale="modeWhitelist"></span></label>
+                    <button class="set-default-btn" data-mode="whitelist" title="Set as default">☆</button>
+                </div>
+                <div class="mode-option">
+                    <label><input type="radio" name="mode" value="mute-new"><span data-locale="modeMuteNew"></span></label>
+                    <button class="set-default-btn" data-mode="mute-new" title="Set as default">☆</button>
+                </div>
+            </fieldset>
+
+            <div id="mute-new-controls" class="hidden">
+                <button id="reset-mute-new-btn" data-locale="resetMuteNew" type="button"></button>
+            </div>
+
+            <div id="remember-option-wrapper" class="hidden">
+                <label class="remember-option-label">
+                    <span class="toggle-label" data-locale="rememberLastTab" data-locale-title="rememberLastTabDesc"></span>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="remember-last-tab-toggle">
+                        <span class="slider"></span>
+                    </div>
+                </label>
+            </div>
+
+            <div id="first-sound-controls" class="hidden">
+                <div id="first-sound-btn-container">
+                    <button id="set-source-btn" data-locale="refreshSource" type="button" data-command-name="set-current-tab-source"></button>
+                    <button id="clear-source-btn" type="button" data-locale-title="clearSource" title="Clear sound source">☓</button>
+                </div>
+                <div id="current-sound-source-display" class="current-sound-source-display"></div>
+                <div class="expandable-content hidden">
+                    <label class="show-all-tabs-label">
+                        <input type="checkbox" id="show-all-tabs-first-sound">
+                        <span data-locale="showAllTabs"></span>
+                    </label>
+                    <ul id="first-sound-tabs-list"></ul>
+                </div>
+            </div>
+
+            <div id="whitelist-controls" class="hidden">
+                <div class="whitelist-header">
+                    <h4 data-locale="selectTabToUnmute"></h4>
+                    <button id="clear-whitelist-btn" type="button" data-locale-title="clearSource" title="Clear sound source">☓</button>
+                </div>
+                <div class="expandable-content">
+                    <label class="show-all-tabs-label">
+                        <input type="checkbox" id="show-all-tabs-whitelist">
+                        <span data-locale="showAllTabs"></span>
+                    </label>
+                    <ul id="audible-tabs-list"></ul>
+                </div>
+            </div>
+        </div>
+        <button id="expand-settings-btn" class="expand-btn hidden" data-locale-title="expandOptionsTooltip">▼</button>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>
