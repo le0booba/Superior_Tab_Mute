@@ -56,23 +56,23 @@
 <summary>🔧 Advanced Functionality</summary>
 
 **Core Architecture:**
--   **Persistent & Synced Settings**: Core preferences sync across devices using your Chrome account.
--   **Safe Handling**: Automatically ignores Chrome system pages (`chrome://`) and other extensions to prevent conflicts.
--   **Error Recovery**: Intelligently handles closed tabs by clearing their status and automatically updating muting rules.
--   **Smart Source Switching**: Automatically switches to alternative audio sources when the current source becomes unavailable.
--   **Stratified Storage System**: Uses appropriate storage mechanisms (sync for user preferences, session for temporary tab IDs, local for device-specific UI settings) to ensure data persistence and cross-device compatibility.
--   **Startup Configuration**: Applies your default mode and mute preferences automatically when Chrome launches.
+-   **Persistent & Synced Settings**: Core preferences sync across devices using chrome.storage.sync for consistent experience.
+-   **Safe Handling**: Automatically filters out Chrome system pages (`chrome://`) and extension pages (`chrome-extension://`) to prevent conflicts using `isManageableTab()` validation.
+-   **Error Recovery**: Gracefully handles closed tabs through `safeGetTab()`, `safeUpdateTab()`, and `safeQueryTabs()` wrappers that catch and log errors without breaking functionality.
+-   **Smart Source Switching**: Automatically switches to alternative audio sources when the current source becomes unavailable, with intelligent fallback to the last audible tab when "Remember Last Source" is enabled.
+-   **Stratified Storage System**: Uses chrome.storage.sync for user preferences (mode, settings), chrome.storage.session for temporary tab IDs and state, and localStorage for device-specific UI preferences (language, checkbox states).
+-   **Startup Configuration**: Applies default mode and mute preferences automatically on Chrome startup through `handleStartup()` listener.
 
 **Performance Optimizations:**
-1. **Debounced Event Handling**: Frequent operations like applying muting rules and updating popup data are debounced (150ms delay) to prevent redundant executions and reduce CPU load during rapid tab changes or updates.
+1. **Debounced Event Handling**: Frequent operations like `applyMutingRules()` and `updatePopupData()` are debounced with 150ms delay to prevent redundant executions during rapid tab changes.
 
-2. **Parallel Async Operations**: Uses `Promise.all()` to execute independent storage reads and tab queries simultaneously, significantly reducing latency when fetching combined settings from multiple storage areas.
+2. **Parallel Async Operations**: Uses `Promise.all()` in `getCombinedSettings()` to execute independent storage reads (sync, session, local) simultaneously, reducing latency.
 
-3. **Efficient DOM Manipulation**: Implements intelligent rendering strategies including reusing existing DOM nodes via Map lookups, batching insertions with DocumentFragment, and updating only changed properties (icon URLs, titles) to minimize reflows and repaints.
+3. **Efficient DOM Manipulation**: Implements `DocumentFragment` for batching tab list insertions, reuses existing DOM elements, and updates only changed properties (icons, titles) to minimize reflows.
 
-4. **Selective Tab Processing**: Filters manageable tabs upfront using `isManageableTab()` to exclude system pages and extensions, preventing unnecessary API calls and reducing iteration overhead across all muting operations.
+4. **Selective Tab Processing**: Filters manageable tabs upfront using `isManageableTab()` to exclude system pages, preventing unnecessary API calls across all muting operations.
 
-5. **Optimized Storage Access**: Minimizes storage I/O by caching popup tab data in session storage and only updating when actual changes occur, while strategically using sync storage for settings that need cross-device persistence and local storage for device-specific preferences.
+5. **Optimized Storage Access**: Caches tab data in chrome.storage.session via `popupTabsData`, updates only when actual changes occur, and strategically uses sync storage for cross-device settings and local storage for device-specific preferences.
 
 </details>
 
