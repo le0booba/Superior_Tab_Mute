@@ -79,7 +79,7 @@
             </fieldset>
 
             <div id="mute-new-controls" class="hidden">
-                <button id="reset-mute-new-btn" data-locale="resetMuteNew" type="button"></button>
+                <button id="reset-mute-new-btn" class="btn" data-locale="resetMuteNew" type="button"></button>
             </div>
 
             <div id="remember-option-wrapper" class="hidden">
@@ -94,8 +94,8 @@
 
             <div id="first-sound-controls" class="hidden">
                 <div id="first-sound-btn-container">
-                    <button id="set-source-btn" data-locale="refreshSource" type="button" data-command-name="set-current-tab-source"></button>
-                    <button id="clear-source-btn" type="button" data-locale-title="clearSource" title="Clear sound source">☓</button>
+                    <button id="set-source-btn" class="btn" data-locale="refreshSource" type="button" data-command-name="set-current-tab-source"></button>
+                    <button id="clear-source-btn" class="btn" type="button" data-locale-title="clearSource" title="Clear sound source">☓</button>
                 </div>
                 <div id="current-sound-source-display" class="current-sound-source-display"></div>
                 <div class="expandable-content hidden">
@@ -110,7 +110,7 @@
             <div id="whitelist-controls" class="hidden">
                 <div class="whitelist-header">
                     <h4 data-locale="selectTabToUnmute"></h4>
-                    <button id="clear-whitelist-btn" type="button" data-locale-title="clearSource" title="Clear sound source">☓</button>
+                    <button id="clear-whitelist-btn" class="btn" type="button" data-locale-title="clearSource" title="Clear sound source">☓</button>
                 </div>
                 <div class="expandable-content">
                     <label class="show-all-tabs-label">
@@ -121,7 +121,7 @@
                 </div>
             </div>
         </div>
-        <button id="expand-settings-btn" class="expand-btn hidden" data-locale-title="expandOptionsTooltip">▼</button>
+        <button id="expand-settings-btn" class="btn expand-btn hidden" data-locale-title="expandOptionsTooltip">▼</button>
     </div>
     <script src="popup.js"></script>
 </body>

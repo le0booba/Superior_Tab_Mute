@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Superior Tab Mute",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "description": "Advanced control over sound in browser.",
   "permissions": [
     "tabs",
@@ -26,19 +26,19 @@
   "commands": {
     "toggle-extension": {
       "suggested_key": {
-        "default": "Alt+Shift+S"
+        "default": "Alt+S"
       },
       "description": "Toggle extension on/off"
     },
     "toggle-mute-all": {
       "suggested_key": {
-        "default": "Alt+Shift+A"
+        "default": "Alt+A"
       },
       "description": "Toggle mute all tabs"
     },
     "set-current-tab-source": {
       "suggested_key": {
-        "default": "Alt+Shift+E"
+        "default": "Alt+W"
       },
       "description": "Set current tab as sound source"
     }
