@@ -1,0 +1,74 @@
+{
+  "extDescription": {
+    "message": "Advanced control over sound in browser."
+  },
+  "cmdToggleExtension": {
+    "message": "Toggle extension on/off"
+  },
+  "cmdToggleMuteAll": {
+    "message": "Toggle mute all tabs"
+  },
+  "cmdSetCurrentTabSource": {
+    "message": "Set current tab as sound source"
+  },
+  "muteAll": {
+    "message": "🔇 Mute All Tabs"
+  },
+  "modeActive": {
+    "message": "Mute all except <b>active tab</b>"
+  },
+  "modeFirstSound": {
+    "message": "Mute all except <b>first tab</b> with sound"
+  },
+  "modeWhitelist": {
+    "message": "Mute all except a <b>specific tab</b>"
+  },
+  "modeMuteNew": {
+    "message": "Mute all <b>newly opened</b> tabs"
+  },
+  "selectTabToUnmute": {
+    "message": "Select a Tab to Unmute:"
+  },
+  "showAllTabs": {
+    "message": "Show all tabs"
+  },
+  "refreshSource": {
+    "message": "Current Tab ➜ 🔊"
+  },
+  "noTabs": {
+    "message": "No manageable tabs found."
+  },
+  "noSoundSource": {
+    "message": "No sound source designated."
+  },
+  "sourceClosed": {
+    "message": "Source tab has been closed."
+  },
+  "sourcePrefix": {
+    "message": "SOURCE:"
+  },
+  "by": {
+    "message": "by"
+  },
+  "github": {
+    "message": "GitHub"
+  },
+  "rememberLastTab": {
+    "message": "Remember last source"
+  },
+  "rememberLastTabDesc": {
+    "message": "If the source tab goes silent, auto-switch to the last audible tab."
+  },
+  "resetMuteNew": {
+    "message": "🗔 Reset Mute on All Tabs"
+  },
+  "resetSuccess": {
+    "message": "✔"
+  },
+  "clearSource": {
+    "message": "Clear sound source"
+  },
+  "expandOptionsTooltip": {
+    "message": "Show/hide additional options"
+  }
+}
