@@ -4,6 +4,8 @@
    <img src="https://raw.githubusercontent.com/le0booba/Superior_Tab_Mute/refs/heads/main/screen-options.png" alt="Superior Tab Mute Screenshot" width="230"/>
 
    **Intelligent Audio Control for Chrome**
+   
+   **English** | **[Русский](README.ru.md)**
 
    Stop the audio chaos. Superior Tab Mute puts you in command of your browser's soundscape, automatically silencing background tabs based on simple, powerful rules. This creates a focused environment, perfect for concentrating on work, enjoying uninterrupted music, or isolating a single stream. With its smart muting modes, instant controls, and clean design, you can finally browse in peace.
 
