@@ -70,5 +70,17 @@
   },
   "expandOptionsTooltip": {
     "message": "Show/hide additional options"
+  },
+  "setAsDefault": {
+    "message": "Set as default"
+  },
+  "defaultMode": {
+    "message": "Default mode"
+  },
+  "setDefaultToOn": {
+    "message": "Set default to ON"
+  },
+  "defaultIsOn": {
+    "message": "Default is ON"
   }
 }

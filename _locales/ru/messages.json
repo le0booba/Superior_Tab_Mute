@@ -70,5 +70,17 @@
   },
   "expandOptionsTooltip": {
     "message": "Показать/скрыть дополнительные опции"
+  },
+  "setAsDefault": {
+    "message": "Установить по умолчанию"
+  },
+  "defaultMode": {
+    "message": "Режим по умолчанию"
+  },
+  "setDefaultToOn": {
+    "message": "Установить по умолч. ВКЛ"
+  },
+  "defaultIsOn": {
+    "message": "По умолчанию ВКЛ"
   }
 }

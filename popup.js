@@ -1,51 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const MANIFEST = chrome.runtime.getManifest();
-    const LOCALES = {
-        en: {
-            muteAll: '🔇 Mute All Tabs',
-            modeActive: 'Mute all except <b>active tab</b>',
-            modeFirstSound: 'Mute all except <b>first tab</b> with sound',
-            modeWhitelist: 'Mute all except a <b>specific tab</b>',
-            modeMuteNew: 'Mute all <b>newly opened</b> tabs',
-            selectTabToUnmute: 'Select a Tab to Unmute:',
-            showAllTabs: 'Show all tabs',
-            refreshSource: 'Current Tab ➜ 🔊',
-            noTabs: 'No manageable tabs found.',
-            noSoundSource: 'No sound source designated.',
-            sourceClosed: 'Source tab has been closed.',
-            sourcePrefix: 'SOURCE:',
-            by: 'by',
-            github: 'GitHub',
-            rememberLastTab: 'Remember last source',
-            rememberLastTabDesc: 'If the source tab goes silent, auto-switch to the last audible tab.',
-            resetMuteNew: '🗔 Reset Mute on All Tabs',
-            resetSuccess: '✔',
-            clearSource: 'Clear sound source',
-            expandOptionsTooltip: 'Show/hide additional options'
-        },
-        ru: {
-            muteAll: '🔇 Заглушить все',
-            modeActive: 'Заглушить все, кроме <b>активной</b>',
-            modeFirstSound: 'Заглуш. все, кроме <b>1ой со звуком</b>',
-            modeWhitelist: 'Заглушить все, кроме <b>выбранной</b>',
-            modeMuteNew: 'Заглушать все <b>новые</b> вкладки',
-            selectTabToUnmute: 'Выберите вкладку для звука:',
-            showAllTabs: 'Показать все вкладки',
-            refreshSource: 'Текущая вкладка ➜ 🔊',
-            noTabs: 'Вкладки не найдены.',
-            noSoundSource: 'Источник звука не назначен.',
-            sourceClosed: 'Вкладка-источник закрыта.',
-            sourcePrefix: 'ИСТОЧНИК:',
-            github: 'GitHub',
-            rememberLastTab: 'Помнить источник',
-            rememberLastTabDesc: 'Если источник затихнет, автоматически переключиться на последнюю вкладку со звуком.',
-            resetMuteNew: '🗔 Сбросить обеззвучивание',
-            resetSuccess: '✔',
-            clearSource: 'Очистить источник звука',
-            expandOptionsTooltip: 'Показать/скрыть дополнительные опции'
-        }
-    };
-    
+    let LOCALES = {en: {}, ru: {}};
     let currentLanguage = 'en';
     let popupTabsData = [];
     
@@ -77,7 +32,22 @@ document.addEventListener('DOMContentLoaded', () => {
         expandableContentFS: document.querySelector('#first-sound-controls .expandable-content'),
     };
     
-    const getLocaleString = (key) => LOCALES[currentLanguage]?.[key] || LOCALES.en[key];
+    const loadLocales = async () => {
+        const loadLocale = async (lang) => {
+            const response = await fetch(`_locales/${lang}/messages.json`);
+            const data = await response.json();
+            const locale = {};
+            for (const key in data) {
+                locale[key] = data[key].message;
+            }
+            return locale;
+        };
+        
+        LOCALES.en = await loadLocale('en');
+        LOCALES.ru = await loadLocale('ru');
+    };
+    
+    const getLocaleString = (key) => LOCALES[currentLanguage]?.[key] || LOCALES.en[key] || '';
     
     const getCombinedSettings = () => Promise.all([
         chrome.storage.sync.get({
@@ -267,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isActive = btn.dataset.mode === defaultMode;
             btn.classList.toggle('active', isActive);
             btn.textContent = isActive ? '★' : '☆';
-            btn.title = isActive ? 'Default mode' : 'Set as default';
+            btn.title = isActive ? getLocaleString('defaultMode') : getLocaleString('setAsDefault');
         });
     };
     
@@ -275,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isActive = defaultMuteAll === true;
         DOM.setDefaultMuteAllBtn.classList.toggle('active', isActive);
         DOM.setDefaultMuteAllBtn.textContent = isActive ? '★' : '☆';
-        DOM.setDefaultMuteAllBtn.title = isActive ? 'Default is ON' : 'Set default to ON';
+        DOM.setDefaultMuteAllBtn.title = isActive ? getLocaleString('defaultIsOn') : getLocaleString('setDefaultToOn');
     };
     
     const updateAllUI = async (settings) => {
@@ -311,6 +281,8 @@ document.addEventListener('DOMContentLoaded', () => {
         applyLocalization();
         
         const settings = await getCombinedSettings();
+        updateDefaultModeUI(settings.defaultMode);
+        updateDefaultMuteAllUI(settings.defaultMuteAll);
         await updateControlSectionsVisibility(settings);
     };
     
@@ -432,6 +404,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     const initialize = async () => {
+        await loadLocales();
+        
         const settings = await getCombinedSettings();
         currentLanguage = settings.stm_lang;
         popupTabsData = settings.popupTabsData;
