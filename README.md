@@ -58,18 +58,21 @@
 <summary>🔧 Advanced Functionality</summary>
 
 **Core Architecture:**
-1. **Persistent & Synced Settings**: Core preferences sync across devices using chrome.storage.sync for consistent experience.
-2. **Safe Handling**: Automatically filters out Chrome system pages (`chrome://`) and extension pages (`chrome-extension://`) to prevent conflicts using `isManageableTab()` validation.
+1. **Persistent & Synced Settings**: Core preferences sync across devices using `chrome.storage.sync` for consistent experience. Settings include mode selection, extension state, mute all status, and remember last tab preference.
+2. **Safe Tab Handling**: Automatically filters out Chrome system pages (`chrome://`) and extension pages (`chrome-extension://`) to prevent conflicts using `isManageableTab()` validation.
 3. **Error Recovery**: Gracefully handles closed tabs through `safeGetTab()`, `safeUpdateTab()`, and `safeQueryTabs()` wrappers that catch and log errors without breaking functionality.
-4. **Stratified Storage System**: Uses chrome.storage.sync for user preferences (mode, settings, defaults), chrome.storage.session for temporary tab IDs and expansion states, and chrome.storage.local for device-specific UI preferences (language, checkbox states).
+4. **Stratified Storage System**: 
+   - `chrome.storage.sync`: User preferences (mode, settings, defaults) synced across devices
+   - `chrome.storage.session`: Temporary tab IDs and expansion states cleared on browser restart
+   - `chrome.storage.local`: Device-specific UI preferences (language, checkbox states)
 5. **Multi-Language Support**: Built-in English and Russian localization with seamless language switching, storing language preference locally while keeping interface text in embedded locale objects.
 
 **Performance Optimizations:**
 1. **Debounced Event Handling**: Frequent operations like `applyMutingRules()` and `updatePopupData()` are debounced with 150ms delay to prevent redundant executions during rapid tab changes, reducing CPU usage by ~40-50%.
-2. **Parallel Async Operations**: Uses `Promise.all()` in `getCombinedSettings()`, initialization, and tab processing to execute independent operations simultaneously, reducing latency by 40-60%.
+2. **Parallel Async Operations**: Uses `Promise.all()` in `getCombinedSettings()`, initialization (`handleStartup()`, `handleInstall()`), and tab processing to execute independent operations simultaneously, reducing latency by 40-60%.
 3. **Selective Tab Processing**: Filters manageable tabs upfront using `isManageableTab()` to exclude system pages, preventing unnecessary API calls and reducing Chrome API overhead by ~20-30%.
-4. **Optimized Storage Access**: Caches tab data in chrome.storage.session via `popupTabsData` for instant popup rendering, and batches related storage operations to minimize API calls.
-5. **Efficient DOM Rendering**: Uses DocumentFragment for batch tab list rendering and early returns in event handlers to avoid unnecessary DOM updates, improving UI responsiveness by ~30%.
+4. **Optimized Storage Access**: Caches tab data in `chrome.storage.session` via `popupTabsData` for instant popup rendering, and batches related storage operations to minimize API calls.
+5. **Efficient DOM Rendering**: Uses DocumentFragment for batch tab list rendering in `renderTabsList()` and early returns in event handlers to avoid unnecessary DOM updates, improving UI responsiveness by ~30%.
 
 </details>
 
@@ -179,7 +182,7 @@ Superior_Tab_Mute/
 │   ├── 🖼️ icon128.png          # Default state (128x128)
 │   ├── 🖼️ icon128_mute.png     # All tabs muted state (128x128)
 │   └── 🖼️ icon128_off.png      # Disabled state (128x128)
-├── 📄 LICENSE.md            # MIT License
+├── 📄 LICENSE               # MIT License
 └── 📖 README.md             # This documentation
 ```
 
