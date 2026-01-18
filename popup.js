@@ -157,8 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
             DOM.soundSourceDisplay.appendChild(img);
             DOM.soundSourceDisplay.appendChild(span);
         } catch {
-            DOM.soundSourceDisplay.textContent = getLocaleString('sourceClosed');
-            DOM.soundSourceDisplay.className = 'current-sound-source-display error';
+            // Вкладка не существует - автоматически очищаем ID
+            await chrome.storage.session.remove('firstAudibleTabId');
+            DOM.soundSourceDisplay.textContent = getLocaleString('noSoundSource');
+            DOM.soundSourceDisplay.className = 'current-sound-source-display';
         }
     };
     
@@ -169,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const {showAllTabsFirstSound} = await chrome.storage.local.get({showAllTabsFirstSound: false});
             DOM.showAllTabsFirstSound.checked = showAllTabsFirstSound;
             const tabsToList = showAllTabsFirstSound ? allowedTabs : allowedTabs.filter(t => t.audible);
+            
             renderTabsList({
                 container: DOM.firstSoundTabsList,
                 tabs: tabsToList,
@@ -181,9 +184,18 @@ document.addEventListener('DOMContentLoaded', () => {
             DOM.showAllTabsWhitelist.checked = showAllTabsWhitelist;
             let tabsToList = showAllTabsWhitelist ? allowedTabs : allowedTabs.filter(t => t.audible);
             
-            if (!showAllTabsWhitelist && settings.whitelistedTabId && !tabsToList.some(t => t.id === settings.whitelistedTabId)) {
-                const whitelistedTabDetails = popupTabsData.find(t => t.id === settings.whitelistedTabId);
-                if (whitelistedTabDetails) tabsToList.unshift(whitelistedTabDetails);
+            // Добавляем whitelisted вкладку если она не в audible списке
+            if (!showAllTabsWhitelist && settings.whitelistedTabId) {
+                const exists = tabsToList.some(t => t.id === settings.whitelistedTabId);
+                if (!exists) {
+                    const whitelistedTab = popupTabsData.find(t => t.id === settings.whitelistedTabId);
+                    if (whitelistedTab) {
+                        tabsToList.unshift(whitelistedTab);
+                    } else {
+                        // Вкладка не найдена - очищаем (редкий случай)
+                        chrome.storage.session.remove('whitelistedTabId');
+                    }
+                }
             }
             
             renderTabsList({

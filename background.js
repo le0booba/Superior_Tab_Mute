@@ -275,21 +275,30 @@ const handleTabRemoval = async (tabId) => {
     
     if (!keyToUpdate || tabId !== cachedSettings[keyToUpdate]) return;
     
-    if (cachedSettings.rememberLastTab) {
-        const audibleTabs = (await safeQueryTabs({audible: true})).filter(t => t.id !== tabId);
-        if (audibleTabs.length > 0) {
-            return chrome.storage.session.set({[keyToUpdate]: audibleTabs[0].id});
-        }
-    }
-    
-    if (cachedSettings.mode === 'first-sound') {
-        const [activeTab] = await safeQueryTabs({active: true, currentWindow: true});
-        if (activeTab?.audible) {
-            return chrome.storage.session.set({firstAudibleTabId: activeTab.id});
-        }
-    }
-    
+    // Вкладка-источник закрыта - очищаем её ID
     await chrome.storage.session.remove(keyToUpdate);
+    cachedSettings[keyToUpdate] = null;
+    
+    // Пытаемся найти замену только если включена опция "Remember Last Source"
+    if (cachedSettings.rememberLastTab) {
+        const audibleTabs = (await safeQueryTabs({audible: true}))
+            .filter(t => t.id !== tabId && isManageableTab(t));
+        
+        if (audibleTabs.length > 0) {
+            await chrome.storage.session.set({[keyToUpdate]: audibleTabs[0].id});
+            cachedSettings[keyToUpdate] = audibleTabs[0].id;
+            return;
+        }
+    }
+    
+    // Для режима First Sound: если нет замены и есть активная вкладка со звуком
+    if (cachedSettings.mode === 'first-sound' && !cachedSettings.rememberLastTab) {
+        const [activeTab] = await safeQueryTabs({active: true, currentWindow: true});
+        if (activeTab?.audible && isManageableTab(activeTab)) {
+            await chrome.storage.session.set({firstAudibleTabId: activeTab.id});
+            cachedSettings.firstAudibleTabId = activeTab.id;
+        }
+    }
 };
 
 const handleStorageChange = async (changes, area) => {
@@ -396,6 +405,7 @@ const handleStartup = async () => {
         updateExtensionIcon(settings)
     ]);
 };
+
 chrome.runtime.onInstalled.addListener(handleInstall);
 chrome.runtime.onStartup.addListener(handleStartup);
 chrome.tabs.onCreated.addListener(handleTabCreation);
