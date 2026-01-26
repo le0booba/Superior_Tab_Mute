@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const MANIFEST = chrome.runtime.getManifest();
     let LOCALES = {en: {}, ru: {}};
     let currentLanguage = 'en';
-    let popupTabsData = [];
     
     const DOM = {
         controlsWrapper: document.getElementById('controls-wrapper'),
@@ -49,6 +48,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const getLocaleString = (key) => LOCALES[currentLanguage]?.[key] || LOCALES.en[key] || '';
     
+    const isManageableTab = (tab) => tab.id && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://') && !tab.url.startsWith('edge://');
+    
+    const fetchTabs = async () => {
+        const allTabs = await chrome.tabs.query({});
+        return allTabs.filter(isManageableTab).map(tab => ({
+            id: tab.id,
+            title: tab.title,
+            favIconUrl: tab.favIconUrl,
+            audible: tab.audible,
+            url: tab.url
+        }));
+    };
+
     const getCombinedSettings = () => Promise.all([
         chrome.storage.sync.get({
             mode: 'active',
@@ -61,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.storage.session.get({
             firstAudibleTabId: null,
             whitelistedTabId: null,
-            popupTabsData: [],
             expansionStates: {}
         }),
         chrome.storage.local.get({stm_lang: 'en'})
@@ -157,7 +168,6 @@ document.addEventListener('DOMContentLoaded', () => {
             DOM.soundSourceDisplay.appendChild(img);
             DOM.soundSourceDisplay.appendChild(span);
         } catch {
-            // Вкладка не существует - автоматически очищаем ID
             await chrome.storage.session.remove('firstAudibleTabId');
             DOM.soundSourceDisplay.textContent = getLocaleString('noSoundSource');
             DOM.soundSourceDisplay.className = 'current-sound-source-display';
@@ -165,6 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     const refreshTabLists = async (settings) => {
+        const popupTabsData = await fetchTabs();
         const allowedTabs = popupTabsData.filter(t => !t.url?.startsWith('https://chromewebstore.google.com/'));
         
         if (!DOM.firstSoundControls.classList.contains('hidden') && !DOM.expandableContentFS.classList.contains('hidden')) {
@@ -184,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
             DOM.showAllTabsWhitelist.checked = showAllTabsWhitelist;
             let tabsToList = showAllTabsWhitelist ? allowedTabs : allowedTabs.filter(t => t.audible);
             
-            // Добавляем whitelisted вкладку если она не в audible списке
             if (!showAllTabsWhitelist && settings.whitelistedTabId) {
                 const exists = tabsToList.some(t => t.id === settings.whitelistedTabId);
                 if (!exists) {
@@ -192,7 +202,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (whitelistedTab) {
                         tabsToList.unshift(whitelistedTab);
                     } else {
-                        // Вкладка не найдена - очищаем (редкий случай)
                         chrome.storage.session.remove('whitelistedTabId');
                     }
                 }
@@ -274,9 +283,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     const handleStorageChange = async (changes) => {
-        if (changes.popupTabsData) {
-            popupTabsData = changes.popupTabsData.newValue || [];
-        }
         const settings = await getCombinedSettings();
         await updateAllUI(settings);
     };
@@ -299,9 +305,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     const onSetDefaultMode = async (e) => {
-        if (!e.target.classList.contains('set-default-btn')) return;
+        const btn = e.target.closest('.set-default-btn');
+        if (!btn || !btn.dataset.mode) return;
         
-        const clickedMode = e.target.dataset.mode;
+        const clickedMode = btn.dataset.mode;
         const {defaultMode} = await chrome.storage.sync.get('defaultMode');
         chrome.storage.sync.set({defaultMode: defaultMode === clickedMode ? null : clickedMode});
     };
@@ -408,9 +415,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         DOM.resetMuteNewBtn.addEventListener('click', onResetMuteNew);
-        DOM.modeForm.addEventListener('click', onSetDefaultMode);
-        DOM.setDefaultMuteAllBtn.addEventListener('click', onSetDefaultMuteAll);
         DOM.expandSettingsBtn.addEventListener('click', onExpandSettings);
+
+        DOM.controlsWrapper.addEventListener('click', (e) => {
+            if (e.target.classList.contains('set-default-btn')) {
+               if (e.target.id === 'set-default-mute-all') {
+                   onSetDefaultMuteAll();
+               } else {
+                   onSetDefaultMode(e);
+               }
+            }
+        });
         
         chrome.storage.onChanged.addListener(handleStorageChange);
     };
@@ -420,7 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const settings = await getCombinedSettings();
         currentLanguage = settings.stm_lang;
-        popupTabsData = settings.popupTabsData;
         
         document.getElementById('lang-en').classList.toggle('active', currentLanguage === 'en');
         document.getElementById('lang-ru').classList.toggle('active', currentLanguage === 'ru');

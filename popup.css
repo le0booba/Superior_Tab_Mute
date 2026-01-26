@@ -144,7 +144,6 @@ body {
     background: var(--toggle-bg);
     transition: .4s;
     border-radius: 18px;
-    will-change: background-color;
 }
 
 .slider:before {
@@ -157,7 +156,6 @@ body {
     background: var(--toggle-handle);
     transition: .4s;
     border-radius: 50%;
-    will-change: transform;
 }
 
 input:checked+.slider {
