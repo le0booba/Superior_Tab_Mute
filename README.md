@@ -1,7 +1,7 @@
 # Superior Tab Mute
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/le0booba/Superior_Tab_Mute/refs/heads/main/screen-options.png" alt="Superior Tab Mute Screenshot" width="230"/>
+   <img src="https://raw.githubusercontent.com/le0booba/Superior_Tab_Mute/refs/heads/main/screen-options.png" alt="Superior Tab Mute Screenshot" width="275"/>
 
    **Intelligent Audio Control for Chrome**
    
