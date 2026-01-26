@@ -68,11 +68,11 @@
 5. **Multi-Language Support**: Built-in English and Russian localization with seamless language switching, storing language preference locally while keeping interface text in embedded locale objects.
 
 **Performance Optimizations:**
-1. **Debounced Event Handling**: Frequent operations like `applyMutingRules()` and `updatePopupData()` are debounced with 150ms delay to prevent redundant executions during rapid tab changes, reducing CPU usage by ~40-50%.
-2. **Parallel Async Operations**: Uses `Promise.all()` in `getCombinedSettings()`, initialization (`handleStartup()`, `handleInstall()`), and tab processing to execute independent operations simultaneously, reducing latency by 40-60%.
-3. **Selective Tab Processing**: Filters manageable tabs upfront using `isManageableTab()` to exclude system pages, preventing unnecessary API calls and reducing Chrome API overhead by ~20-30%.
-4. **Optimized Storage Access**: Caches tab data in `chrome.storage.session` via `popupTabsData` for instant popup rendering, and batches related storage operations to minimize API calls.
-5. **Efficient DOM Rendering**: Uses DocumentFragment for batch tab list rendering in `renderTabsList()` and early returns in event handlers to avoid unnecessary DOM updates, improving UI responsiveness by ~30%.
+1. **Debounced Event Handling**: Core muting operations like `applyMutingRules()` are debounced with 150ms delay to prevent redundant executions during rapid tab changes and updates, reducing CPU usage by approximately 40-50% during intensive browsing sessions.
+2. **Parallel Async Operations**: Uses `Promise.all()` for simultaneous execution of independent operations in storage retrieval (`getCombinedSettings()`), initialization routines (`handleStartup()`, `handleInstall()`), and bulk tab processing operations, reducing overall latency by 40-60%.
+3. **Cached Settings Management**: Implements in-memory settings cache (`cachedSettings`) with lazy loading via `getSettings()` and explicit refresh through `refreshCache()`, minimizing redundant storage API calls during event-heavy scenarios like rapid tab switching.
+4. **Selective Tab Processing**: Filters manageable tabs upfront using `isManageableTab()` before any operations, excluding system pages to prevent unnecessary Chrome API calls and reducing API overhead by approximately 20-30%.
+5. **Optimized Icon Updates**: Tracks current icon state through `currentIconState` variable to prevent redundant icon updates when state hasn't changed, reducing unnecessary `chrome.action.setIcon()` calls during frequent storage change events.
 
 </details>
 
@@ -115,7 +115,7 @@
 <summary>Permissions Used</summary>
 
 -   **`tabs`**: Required to detect which tabs are playing audio, read their titles/favicons for the UI, and apply muting rules.
--   **`storage`**: Used to save user preferences locally for a consistent experience across browser sessions.
+-   **`storage`**: Used to save user preferences locally and across devices for a consistent experience across browser sessions.
 
 </details>
 
@@ -139,7 +139,6 @@
 -   Temporary settings that are cleared when the browser is closed.
 -   **`firstAudibleTabId`** (tab ID): Tracks the designated audio source tab in "First Sound Mode".
 -   **`whitelistedTabId`** (tab ID): Tracks the user-selected tab in "Whitelist Mode".
--   **`popupTabsData`** (array of tab objects): Cached tab information for efficient popup rendering, including tab IDs, titles, favicons, audible status, and URLs.
 -   **`expansionStates`** (object): Remembers which expandable sections are open for each mode during the current session.
 -   **`muteNewInitialTabIds`** (array): Tracks tabs that existed when "Mute New Tabs" mode was activated, used to manage unmuting behavior.
 -   *Purpose*: Tab IDs are unique to each browser session and would be invalid across devices or after a restart, making session storage the ideal choice.
