@@ -58,7 +58,7 @@
 <summary>🔧 Advanced Functionality</summary>
 
 **Core Architecture:**
-1. **Persistent & Synced Settings**: Core preferences sync across devices using `chrome.storage.sync` for consistent experience. Settings include mode selection, extension state, mute all status, and remember last tab preference.
+1. **Persistent & Synced Settings**: Core preferences sync across devices using `chrome.storage.sync` for a consistent experience. Settings include mode selection, extension state, mute all status, and remember last tab preference.
 2. **Safe Tab Handling**: Automatically filters out Chrome system pages (`chrome://`) and extension pages (`chrome-extension://`) to prevent conflicts using `isManageableTab()` validation.
 3. **Error Recovery**: Gracefully handles closed tabs through `safeGetTab()`, `safeUpdateTab()`, and `safeQueryTabs()` wrappers that catch and log errors without breaking functionality.
 4. **Stratified Storage System**: 
@@ -68,11 +68,11 @@
 5. **Multi-Language Support**: Built-in English and Russian localization with seamless language switching, storing language preference locally while keeping interface text in embedded locale objects.
 
 **Performance Optimizations:**
-1. **Debounced Event Handling**: Core muting operations like `applyMutingRules()` are debounced with 150ms delay to prevent redundant executions during rapid tab changes and updates, reducing CPU usage by approximately 40-50% during intensive browsing sessions.
-2. **Parallel Async Operations**: Uses `Promise.all()` for simultaneous execution of independent operations in storage retrieval (`getCombinedSettings()`), initialization routines (`handleStartup()`, `handleInstall()`), and bulk tab processing operations, reducing overall latency by 40-60%.
-3. **Cached Settings Management**: Implements in-memory settings cache (`cachedSettings`) with lazy loading via `getSettings()` and explicit refresh through `refreshCache()`, minimizing redundant storage API calls during event-heavy scenarios like rapid tab switching.
-4. **Selective Tab Processing**: Filters manageable tabs upfront using `isManageableTab()` before any operations, excluding system pages to prevent unnecessary Chrome API calls and reducing API overhead by approximately 20-30%.
-5. **Optimized Icon Updates**: Tracks current icon state through `currentIconState` variable to prevent redundant icon updates when state hasn't changed, reducing unnecessary `chrome.action.setIcon()` calls during frequent storage change events.
+1. **Debounced Event Handling**: Core muting operations like `applyMutingRules()` are debounced with a 150ms delay to prevent redundant executions during rapid tab changes and updates, reducing CPU usage during intensive browsing sessions.
+2. **Parallel Async Operations**: Uses `Promise.all()` for simultaneous execution of independent operations in storage retrieval (`getCombinedSettings()`), initialization routines (`handleStartup()`, `handleInstall()`), and bulk tab processing, significantly reducing overall latency.
+3. **Cached Settings Management**: Implements an in-memory settings cache (`cachedSettings`) with lazy loading via `getSettings()` and a deduplication guard (`settingsPromise`) that coalesces concurrent refresh calls into a single storage read, minimizing redundant API calls during event-heavy scenarios such as rapid tab switching.
+4. **Selective Tab Processing**: Filters manageable tabs upfront using `isManageableTab()` before any operations, excluding system pages to prevent unnecessary Chrome API calls across all muting operations.
+5. **Mute State Pre-check**: Before issuing any `chrome.tabs.update()` call, the current mute state of each tab is compared against the desired state — tabs already in the correct state are skipped entirely. This is applied both in `setMuteStatusForTabs()` and `applyMutingRules()`, eliminating a significant share of Chrome API calls on every rule application cycle.
 
 </details>
 
