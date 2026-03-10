@@ -69,10 +69,10 @@
 
 **Performance Optimizations:**
 1. **Debounced Event Handling**: Core muting operations like `applyMutingRules()` are debounced with a 150ms delay to prevent redundant executions during rapid tab changes and updates, reducing CPU usage during intensive browsing sessions.
-2. **Parallel Async Operations**: Uses `Promise.all()` for simultaneous execution of independent operations in storage retrieval (`getCombinedSettings()`), initialization routines (`handleStartup()`, `handleInstall()`), and bulk tab processing, significantly reducing overall latency.
-3. **Cached Settings Management**: Implements an in-memory settings cache (`cachedSettings`) with lazy loading via `getSettings()` and a deduplication guard (`settingsPromise`) that coalesces concurrent refresh calls into a single storage read, minimizing redundant API calls during event-heavy scenarios such as rapid tab switching.
+2. **Parallel Async Operations**: Uses `Promise.all()` for simultaneous execution of independent operations in storage retrieval (`refreshCache()`), initialization routines (`handleStartup()`, `handleInstall()`), and bulk tab processing, significantly reducing overall latency.
+3. **Cached Settings Management**: Implements an in-memory settings cache (`cachedSettings`) with fast-path retrieval via `getSettings()` and a deduplication guard (`settingsPromise`) that coalesces concurrent refresh calls into a single storage read, minimizing redundant API calls during event-heavy scenarios.
 4. **Selective Tab Processing**: Filters manageable tabs upfront using `isManageableTab()` before any operations, excluding system pages to prevent unnecessary Chrome API calls across all muting operations.
-5. **Mute State Pre-check**: Before issuing any `chrome.tabs.update()` call, the current mute state of each tab is compared against the desired state — tabs already in the correct state are skipped entirely. This is applied both in `setMuteStatusForTabs()` and `applyMutingRules()`, eliminating a significant share of Chrome API calls on every rule application cycle.
+5. **Mute State Pre-check**: Before issuing any `chrome.tabs.update()` call, the current mute state of each tab is compared against the desired state — tabs already in the correct state are skipped entirely. This is applied in `setTabsMuted()` via a filter on `tab.mutedInfo?.muted`, eliminating a significant share of Chrome API calls on every rule application cycle.
 
 </details>
 
