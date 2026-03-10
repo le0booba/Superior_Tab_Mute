@@ -13,6 +13,9 @@
     --toggle-bg: #555;
     --toggle-handle: #fff;
     --border-color: #34495e;
+    --transition-fast: 0.15s ease-in-out;
+    --transition-normal: 0.2s ease-in-out;
+    --transition-slow: 0.3s ease-in-out;
 }
 
 body {
@@ -22,7 +25,7 @@ body {
     color: var(--text-primary);
     margin: 0;
     opacity: 0;
-    transition: opacity 0.05s ease-in-out;
+    transition: opacity var(--transition-normal);
 }
 
 .container {
@@ -285,10 +288,6 @@ input[type="radio"] {
     cursor: default;
 }
 
-#reset-mute-new-btn.success:hover {
-    background: var(--accent-success);
-}
-
 #first-sound-btn-container {
     display: flex;
     margin-top: 8px;
@@ -316,17 +315,16 @@ input[type="radio"] {
     top: 4px;
     bottom: 4px;
     width: 1px;
-    background: #35536e
+    background: #35536e;
 }
 
 #audible-tabs-list,
 #first-sound-tabs-list {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 0 0 1px 0;
     max-height: 150px;
     overflow-y: auto;
-    margin-bottom: 1px;
 }
 
 .tab-list-item {

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Superior Tab Mute",
-  "version": "2.5.6",
+  "version": "2.6.0",
   "description": "__MSG_extDescription__",
   "default_locale": "en",
   "permissions": [
@@ -9,7 +9,8 @@
     "storage"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "action": {
     "default_popup": "popup.html",
@@ -26,22 +27,19 @@
   },
   "commands": {
     "toggle-extension": {
-      "suggested_key": {
-        "default": "Alt+S"
-      },
+      "suggested_key": "Alt+S",
       "description": "__MSG_cmdToggleExtension__"
     },
     "toggle-mute-all": {
-      "suggested_key": {
-        "default": "Alt+A"
-      },
+      "suggested_key": "Alt+A",
       "description": "__MSG_cmdToggleMuteAll__"
     },
     "set-current-tab-source": {
-      "suggested_key": {
-        "default": "Alt+W"
-      },
+      "suggested_key": "Alt+W",
       "description": "__MSG_cmdSetCurrentTabSource__"
     }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }
