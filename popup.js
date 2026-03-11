@@ -34,7 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const STORAGE_KEYS = {
         sync: { mode: 'active', isExtensionEnabled: true, isAllMuted: false, rememberLastTab: false, defaultMode: null, defaultMuteAll: false },
         session: { firstAudibleTabId: null, whitelistedTabId: null, expansionStates: {} },
-        local: { showAllTabsFirstSound: false, showAllTabsWhitelist: false, stm_lang: 'en' }
+        local: {
+            showAllTabsFirstSound: false,
+            showAllTabsWhitelist: false,
+            stm_lang: chrome.i18n.getUILanguage().startsWith('ru') ? 'ru' : 'en'
+        }
     };
 
     const loadLocales = async () => {
