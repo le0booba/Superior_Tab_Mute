@@ -32,14 +32,17 @@
   "showAllTabs": {
     "message": "Show all tabs"
   },
+  "showAllTabsDesc": {
+    "message": "Show all tabs, including without sound"
+  },
   "refreshSource": {
     "message": "Current Tab ➜ 🔊"
   },
   "noTabs": {
-    "message": "No manageable tabs found."
+    "message": "No manageable tabs found"
   },
   "noSoundSource": {
-    "message": "No sound source designated."
+    "message": "No sound source designated"
   },
   "sourceClosed": {
     "message": "Source tab has been closed."
@@ -57,7 +60,7 @@
     "message": "Remember last source"
   },
   "rememberLastTabDesc": {
-    "message": "If the source tab goes silent, auto-switch to the last audible tab."
+    "message": "If the source tab goes silent, auto-switch to the last audible tab"
   },
   "resetMuteNew": {
     "message": "🗔 Reset Mute on All Tabs"
