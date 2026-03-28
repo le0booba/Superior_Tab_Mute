@@ -51,21 +51,21 @@
 
 ### 🧠 Intelligent Automation
 
--   **Remember Last Source**: When enabled for "First Sound" or "Whitelist" mode, the extension automatically switches to previously audible tabs when your current source tab goes silent or is closed. This ensures seamless listening without manual intervention, intelligently prioritizing your listening experience by falling back to the most recently active audio source.
+-   **Remember Last Source**: When enabled for "First Sound" or "Whitelist" mode, the extension automatically switches to a previously audible tab when your current source tab is closed. This ensures seamless listening without manual intervention, intelligently prioritizing your listening experience by falling back to the most recently active audio source.
 -   **Default Settings on Startup**: Set your preferred mode and "Mute All" state as defaults. When Chrome starts, the extension automatically applies these settings, giving you a consistent experience every session. Mark any mode or the "Mute All" toggle with a star (★) to set it as your default.
 
 <details>
 <summary>🔧 Advanced Functionality</summary>
 
-**Core Architecture:**
+#### Core Architecture:
 1. **Persistent & Synced Settings**: Core preferences sync across devices using `chrome.storage.sync` for a consistent experience. Settings include mode selection, extension state, mute all status, and remember last tab preference.
 2. **Safe Tab Handling**: Automatically filters out Chrome system pages (`chrome://`) and extension pages (`chrome-extension://`) to prevent conflicts using `isManageableTab()` validation.
 3. **Error Recovery**: Gracefully handles closed tabs through `safeGetTab()`, `safeUpdateTab()`, and `safeQueryTabs()` wrappers that catch and log errors without breaking functionality.
 4. **Stratified Storage System**: 
    - `chrome.storage.sync`: User preferences (mode, settings, defaults) synced across devices
-   - `chrome.storage.session`: Temporary tab IDs and expansion states cleared on browser restart
+   - `chrome.storage.session`: Temporary tab IDs, source history, and expansion states cleared on browser restart
    - `chrome.storage.local`: Device-specific UI preferences (language, checkbox states)
-5. **Multi-Language Support**: Built-in English and Russian localization with seamless language switching, storing language preference locally while keeping interface text in embedded locale objects.
+5. **Multi-Language Support**: Built-in English and Russian localization with seamless language switching, storing language preference locally while dynamically loading interface text from `_locales/` JSON files on popup initialization.
 
 **Performance Optimizations:**
 1. **Debounced Event Handling**: Core muting operations like `applyMutingRules()` are debounced with a 150ms delay to prevent redundant executions during rapid tab changes and updates, reducing CPU usage during intensive browsing sessions.
@@ -87,7 +87,7 @@
     -   Choose your desired muting strategy: **Active Tab**, **First Sound**, **Whitelist**, or **Mute New Tabs** mode using the radio buttons.
     -   For "First Sound" or "Whitelist" modes, click the expand button (▼) at the bottom of the popup to reveal additional options and tab lists. Click again to show more options.
     -   Use the tab list to select your audio source. You can enable "Show all tabs" for more options.
-    -   When using "First Sound" or "Whitelist" modes, check the **"Remember last source"** box to enable automatic source switching. The extension will seamlessly switch to previously audible tabs if your current source stops playing or closes.
+    -   When using "First Sound" or "Whitelist" modes, check the **"Remember last source"** box to enable automatic source switching. The extension will seamlessly switch to previously audible tabs if your current source closes.
 
 3.  **Set Default Behavior**
     -   Click the star icon (☆) next to any mode or the "Mute All" toggle to set it as your default.
@@ -141,6 +141,8 @@
 -   **`whitelistedTabId`** (tab ID): Tracks the user-selected tab in "Whitelist Mode".
 -   **`expansionStates`** (object): Remembers which expandable sections are open for each mode during the current session.
 -   **`muteNewInitialTabIds`** (array): Tracks tabs that existed when "Mute New Tabs" mode was activated, used to manage unmuting behavior.
+-   **`firstSoundSourceHistory`** (array): Stores the IDs of up to 3 recently active source tabs in "First Sound Mode", used by "Remember last source" to fall back to an audible alternative when the current source is closed.
+-   **`whitelistSourceHistory`** (array): Stores the IDs of up to 3 recently active source tabs in "Whitelist Mode", used by "Remember last source" to fall back to an audible alternative when the current source is closed.
 -   *Purpose*: Tab IDs are unique to each browser session and would be invalid across devices or after a restart, making session storage the ideal choice.
 
 </details>
