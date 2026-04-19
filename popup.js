@@ -34,11 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const STORAGE_KEYS = {
         sync: { mode: 'active', isExtensionEnabled: true, isAllMuted: false, rememberLastTab: false, defaultMode: null, defaultMuteAll: false },
         session: { firstAudibleTabId: null, whitelistedTabId: null, expansionStates: {} },
-        local: {
-            showAllTabsFirstSound: false,
-            showAllTabsWhitelist: false,
-            stm_lang: chrome.i18n.getUILanguage().startsWith('ru') ? 'ru' : 'en'
-        }
+        local: { showAllTabsFirstSound: false, showAllTabsWhitelist: false, stm_lang: chrome.i18n.getUILanguage().startsWith('ru') ? 'ru' : 'en' }
     };
 
     const loadLocales = async () => {
@@ -52,11 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getLocaleString = (key) => LOCALES[currentLanguage]?.[key] || LOCALES.en[key] || '';
 
-    const isManageableTab = (tab) => tab?.id && tab.url && !/^(chrome|chrome-extension|edge):\/\//.test(tab.url);
-
-    const fetchTabs = async () => {
-        const allTabs = await chrome.tabs.query({});
-        return allTabs.filter(isManageableTab).map(({ id, title, favIconUrl, audible, url }) => ({ id, title, favIconUrl, audible, url }));
+    const fetchManageableTabs = async (query = {}) => {
+        const tabs = await chrome.tabs.query(query);
+        return tabs
+            .filter(tab => tab?.id && tab.url && !/^(chrome|chrome-extension|edge):\/\//.test(tab.url) && !tab.url.startsWith('https://chromewebstore.google.com/'))
+            .map(({ id, title, favIconUrl, audible, url }) => ({ id, title, favIconUrl, audible, url }));
     };
 
     const getCombinedSettings = async () => {
@@ -162,26 +158,24 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const refreshTabLists = async (settings) => {
-        const popupTabsData = await fetchTabs();
-        const allowedTabs = popupTabsData.filter(t => !t.url?.startsWith('https://chromewebstore.google.com/'));
-
         if (!DOM.firstSoundControls.classList.contains('hidden') && !DOM.expandableContentFS.classList.contains('hidden')) {
             const { showAllTabsFirstSound } = await chrome.storage.local.get({ showAllTabsFirstSound: false });
             DOM.showAllTabsFirstSound.checked = showAllTabsFirstSound;
+            const tabs = await fetchManageableTabs(showAllTabsFirstSound ? {} : { audible: true });
             renderTabsList({
                 container: DOM.firstSoundTabsList,
-                tabs: showAllTabsFirstSound ? allowedTabs : allowedTabs.filter(t => t.audible),
+                tabs,
                 selectedId: settings.firstAudibleTabId
             });
         }
         if (!DOM.whitelistControls.classList.contains('hidden')) {
             const { showAllTabsWhitelist } = await chrome.storage.local.get({ showAllTabsWhitelist: false });
             DOM.showAllTabsWhitelist.checked = showAllTabsWhitelist;
-            let tabsToList = showAllTabsWhitelist ? allowedTabs : allowedTabs.filter(t => t.audible);
+            const tabsToList = await fetchManageableTabs(showAllTabsWhitelist ? {} : { audible: true });
 
             if (!showAllTabsWhitelist && settings.whitelistedTabId && !tabsToList.some(t => t.id === settings.whitelistedTabId)) {
-                const whitelistedTab = popupTabsData.find(t => t.id === settings.whitelistedTabId);
-                if (whitelistedTab) tabsToList.unshift(whitelistedTab);
+                const whitelistedTab = await chrome.tabs.get(settings.whitelistedTabId).catch(() => null);
+                if (whitelistedTab) tabsToList.unshift({ id: whitelistedTab.id, title: whitelistedTab.title, favIconUrl: whitelistedTab.favIconUrl, audible: whitelistedTab.audible, url: whitelistedTab.url });
                 else chrome.storage.session.remove('whitelistedTabId');
             }
             renderTabsList({
