@@ -117,7 +117,10 @@ const applyMutingRules = async (settings, activeTabId = null) => {
     return Promise.all(promises);
 };
 
-const debouncedApplyMutingRules = debounce(() => applyMutingRules(cachedSettings), 150);
+const debouncedApplyMutingRules = debounce(async () => {
+    const settings = isCacheInitialized ? cachedSettings : await getSettings();
+    applyMutingRules(settings);
+}, 150);
 
 const ICON_PATHS = {
     default: { 16: 'icons/icon16.png', 48: 'icons/icon48.png', 128: 'icons/icon128.png' },
@@ -206,11 +209,12 @@ const handleMuteAllChange = async ({ newValue: isAllMuted }, settings) => {
 };
 
 const handleTabCreation = async (tab) => {
-    if (cachedSettings.isExtensionEnabled && !/^(chrome|chrome-extension|edge):\/\//.test(tab.url || '')) {
-        let shouldMute = cachedSettings.isAllMuted ||
-            (cachedSettings.mode === 'active' && !tab.active) ||
-            cachedSettings.mode === 'first-sound' ||
-            cachedSettings.mode === 'whitelist';
+    const settings = isCacheInitialized ? cachedSettings : await getSettings();
+    if (settings.isExtensionEnabled && !/^(chrome|chrome-extension|edge):\/\//.test(tab.url || '')) {
+        let shouldMute = settings.isAllMuted ||
+            (settings.mode === 'active' && !tab.active) ||
+            settings.mode === 'first-sound' ||
+            settings.mode === 'whitelist';
         if (shouldMute) safeUpdateTab(tab.id, { muted: true });
     }
 };
@@ -258,26 +262,37 @@ const handleTabUpdate = async (tabId, changeInfo, tab) => {
 };
 
 const handleTabRemoval = async (tabId) => {
-    if (!cachedSettings.isExtensionEnabled) return;
-    const keyToUpdate = cachedSettings.mode === 'first-sound' ? 'firstAudibleTabId' : cachedSettings.mode === 'whitelist' ? 'whitelistedTabId' : null;
-    if (!keyToUpdate || tabId !== cachedSettings[keyToUpdate]) return;
+    const settings = isCacheInitialized ? cachedSettings : await getSettings();
+    if (!settings.isExtensionEnabled) return;
+    const keyToUpdate = settings.mode === 'first-sound' ? 'firstAudibleTabId' : settings.mode === 'whitelist' ? 'whitelistedTabId' : null;
+    if (!keyToUpdate || tabId !== settings[keyToUpdate]) return;
 
     await chrome.storage.session.remove(keyToUpdate);
 
-    if (cachedSettings.rememberLastTab) {
-        const previousSourceId = await getSourceFromHistory(cachedSettings.mode);
-        if (previousSourceId) {
-            await chrome.storage.session.set({ [keyToUpdate]: previousSourceId });
+    if (settings.mode === 'first-sound') {
+        let newSourceId = null;
+        if (settings.rememberLastTab) {
+            newSourceId = await getSourceFromHistory(settings.mode);
         }
-    } else if (cachedSettings.mode === 'first-sound') {
-        const [activeTab] = await safeQueryTabs({ active: true, currentWindow: true });
-        if (activeTab?.audible && isManageableTab(activeTab)) {
-            await chrome.storage.session.set({ firstAudibleTabId: activeTab.id });
+        if (!newSourceId) {
+            const [activeTab] = await safeQueryTabs({ active: true, currentWindow: true });
+            if (activeTab?.audible && isManageableTab(activeTab)) {
+                newSourceId = activeTab.id;
+            }
+        }
+        if (newSourceId) {
+            await chrome.storage.session.set({ firstAudibleTabId: newSourceId });
+        }
+    } else if (settings.mode === 'whitelist' && settings.rememberLastTab) {
+        const previousSourceId = await getSourceFromHistory(settings.mode);
+        if (previousSourceId) {
+            await chrome.storage.session.set({ whitelistedTabId: previousSourceId });
         }
     }
 };
 
 const handleStorageChange = async (changes, area) => {
+    if (!isCacheInitialized) await getSettings();
     for (const [key, { newValue }] of Object.entries(changes)) {
         cachedSettings[key] = newValue;
     }
