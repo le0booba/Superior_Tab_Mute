@@ -9,113 +9,200 @@
 </head>
 
 <body>
-    <div class="container">
-        <header class="header">
-            <div class="header-icon-title">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <circle cx="12" cy="12" r="12" fill="#27ae60" />
-                    <path d="M6 17v-2a6 6 0 0 1 12 0v2" stroke="#fff" stroke-width="2" fill="none" />
-                    <rect x="4" y="15" width="4" height="6" rx="2" fill="#fff" />
-                    <rect x="16" y="15" width="4" height="6" rx="2" fill="#fff" />
-                </svg>
-            </div>
-            <div class="app-info">
-                <span id="version-info"></span>
-                <span id="author-info"></span>
-                <a id="github-link" href="https://github.com/le0booba/Superior_Tab_Mute" target="_blank"
-                    rel="noopener noreferrer"></a>
-            </div>
-        </header>
+    <div class="main-wrapper">
+        <div class="container main-panel">
+            <header class="header">
+                <div class="header-icon-title">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="12" r="12" fill="#27ae60" />
+                        <path d="M6 17v-2a6 6 0 0 1 12 0v2" stroke="#fff" stroke-width="2" fill="none" />
+                        <rect x="4" y="15" width="4" height="6" rx="2" fill="#fff" />
+                        <rect x="16" y="15" width="4" height="6" rx="2" fill="#fff" />
+                    </svg>
+                </div>
+                <div class="app-info">
+                    <span id="version-info"></span>
+                    <span id="author-info"></span>
+                    <a id="github-link" href="https://github.com/le0booba/Superior_Tab_Mute" target="_blank"
+                        rel="noopener noreferrer"></a>
+                </div>
+            </header>
 
-        <div class="top-bar">
-            <div class="lang-switcher">
-                <button class="lang-btn" id="lang-en" type="button"><svg viewBox="0 0 28 20" fill="none"><text x="50%"
-                            y="55%" dominant-baseline="middle" text-anchor="middle"
-                            font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-                            font-size="14" font-weight="600" fill="currentColor">EN</text></svg></button>
-                <button class="lang-btn" id="lang-ru" type="button"><svg viewBox="0 0 28 20" fill="none"><text x="50%"
-                            y="55%" dominant-baseline="middle" text-anchor="middle"
-                            font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-                            font-size="14" font-weight="600" fill="currentColor">RU</text></svg></button>
+            <div class="top-bar">
+                <div class="lang-switcher">
+                    <button class="lang-btn" id="lang-en" type="button"><svg viewBox="0 0 28 20" fill="none"><text x="50%"
+                                y="55%" dominant-baseline="middle" text-anchor="middle"
+                                font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+                                font-size="14" font-weight="600" fill="currentColor">EN</text></svg></button>
+                    <button class="lang-btn" id="lang-ru" type="button"><svg viewBox="0 0 28 20" fill="none"><text x="50%"
+                                y="55%" dominant-baseline="middle" text-anchor="middle"
+                                font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+                                font-size="14" font-weight="600" fill="currentColor">RU</text></svg></button>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <div class="master-toggle-container" data-command-name="toggle-extension">
+                    <span class="master-toggle-icon">⭘</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="master-toggle-switch">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="master-toggle-icon">⏽</span>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <div class="exception-btns-group">
+                    <button id="quick-allow-btn" class="quick-exception-btn" type="button" data-locale-title="addToAllow">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="12" cy="12" r="12" fill="var(--accent-success)" />
+                            <path d="M7 10.5h2l3.5-3v9l-3.5-3H7z" fill="#fff"/>
+                            <path d="M15 9.5a4 4 0 0 1 0 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button id="quick-block-btn" class="quick-exception-btn" type="button" data-locale-title="addToBlock">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="12" cy="12" r="12" fill="var(--accent-error)" />
+                            <path d="M6 10.5h2l3.5-3v9l-3.5-3H6z" fill="#fff"/>
+                            <line x1="15" y1="9" x2="19" y2="15" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                            <line x1="19" y1="9" x2="15" y2="15" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button id="edit-lists-btn" class="edit-lists-btn" type="button" data-locale-title="editLists">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="12" cy="12" r="12" fill="var(--accent-primary)" />
+                            <path d="M8 8h8M8 12h8M8 16h8" stroke="#fff" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            <div class="master-toggle-container" data-command-name="toggle-extension">
-                <span class="master-toggle-icon">⭘</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="master-toggle-switch">
-                    <span class="slider"></span>
-                </label>
-                <span class="master-toggle-icon">⏽</span>
+            <div id="controls-wrapper">
+                <div class="toggle-option">
+                    <label class="toggle-switch" data-command-name="toggle-mute-all">
+                        <input type="checkbox" id="mute-all-toggle-switch">
+                        <span class="slider"></span>
+                        <span class="toggle-label" data-locale="muteAll"></span>
+                    </label>
+                    <button class="set-default-btn" id="set-default-mute-all">☆</button>
+                </div>
+
+                <fieldset id="mode-form">
+                    <legend class="sr-only">Muting Mode</legend>
+                    <div class="mode-option"><label><input type="radio" name="mode" value="active"><span
+                                data-locale="modeActive"></span></label><button class="set-default-btn"
+                            data-mode="active">☆</button></div>
+                    <div class="mode-option"><label><input type="radio" name="mode" value="first-sound"><span
+                                data-locale="modeFirstSound"></span></label><button class="set-default-btn"
+                            data-mode="first-sound">☆</button></div>
+                    <div class="mode-option"><label><input type="radio" name="mode" value="whitelist"><span
+                                data-locale="modeWhitelist"></span></label><button class="set-default-btn"
+                            data-mode="whitelist">☆</button></div>
+                    <div class="mode-option"><label><input type="radio" name="mode" value="mute-new"><span
+                                data-locale="modeMuteNew"></span></label><button class="set-default-btn"
+                            data-mode="mute-new">☆</button></div>
+                </fieldset>
+
+                <div id="mute-new-controls" class="hidden">
+                    <button id="reset-mute-new-btn" class="btn" data-locale="resetMuteNew" type="button"></button>
+                </div>
+
+                <div id="remember-option-wrapper" class="hidden">
+                    <label class="remember-option-label" data-locale-title="rememberLastTabDesc">
+                        <span class="toggle-label" data-locale="rememberLastTab"></span>
+                        <div class="toggle-switch"><input type="checkbox" id="remember-last-tab-toggle"><span
+                                class="slider"></span></div>
+                    </label>
+                </div>
+
+                <div id="first-sound-controls" class="hidden">
+                    <div id="first-sound-btn-container">
+                        <button id="set-source-btn" class="btn" data-locale="refreshSource" type="button"
+                            data-command-name="set-current-tab-source"></button>
+                        <button id="clear-source-btn" class="btn" type="button" data-locale-title="clearSource">☓</button>
+                    </div>
+                    <div id="current-sound-source-display" class="current-sound-source-display"></div>
+                    <div class="expandable-content hidden">
+                        <label class="show-all-tabs-label" data-locale-title="showAllTabsDesc"><input type="checkbox" id="show-all-tabs-first-sound"><span
+                                data-locale="showAllTabs"></span></label>
+                        <ul id="first-sound-tabs-list"></ul>
+                    </div>
+                </div>
+
+                <div id="whitelist-controls" class="hidden">
+                    <div class="whitelist-header">
+                        <h4 data-locale="selectTabToUnmute"></h4>
+                        <button id="clear-whitelist-btn" class="btn" type="button"
+                            data-locale-title="clearSource">☓</button>
+                    </div>
+                    <div class="expandable-content">
+                        <label class="show-all-tabs-label" data-locale-title="showAllTabsDesc"><input type="checkbox" id="show-all-tabs-whitelist"><span
+                                data-locale="showAllTabs"></span></label>
+                        <ul id="audible-tabs-list"></ul>
+                    </div>
+                </div>
             </div>
+            <button id="expand-settings-btn" class="btn expand-btn hidden"
+                data-locale-title="expandOptionsTooltip">▼</button>
         </div>
 
-        <div id="controls-wrapper">
-            <div class="toggle-option">
-                <label class="toggle-switch" data-command-name="toggle-mute-all">
-                    <input type="checkbox" id="mute-all-toggle-switch">
-                    <span class="slider"></span>
-                    <span class="toggle-label" data-locale="muteAll"></span>
-                </label>
-                <button class="set-default-btn" id="set-default-mute-all">☆</button>
-            </div>
-
-            <fieldset id="mode-form">
-                <legend class="sr-only">Muting Mode</legend>
-                <div class="mode-option"><label><input type="radio" name="mode" value="active"><span
-                            data-locale="modeActive"></span></label><button class="set-default-btn"
-                        data-mode="active">☆</button></div>
-                <div class="mode-option"><label><input type="radio" name="mode" value="first-sound"><span
-                            data-locale="modeFirstSound"></span></label><button class="set-default-btn"
-                        data-mode="first-sound">☆</button></div>
-                <div class="mode-option"><label><input type="radio" name="mode" value="whitelist"><span
-                            data-locale="modeWhitelist"></span></label><button class="set-default-btn"
-                        data-mode="whitelist">☆</button></div>
-                <div class="mode-option"><label><input type="radio" name="mode" value="mute-new"><span
-                            data-locale="modeMuteNew"></span></label><button class="set-default-btn"
-                        data-mode="mute-new">☆</button></div>
-            </fieldset>
-
-            <div id="mute-new-controls" class="hidden">
-                <button id="reset-mute-new-btn" class="btn" data-locale="resetMuteNew" type="button"></button>
-            </div>
-
-            <div id="remember-option-wrapper" class="hidden">
-                <label class="remember-option-label" data-locale-title="rememberLastTabDesc">
-                    <span class="toggle-label" data-locale="rememberLastTab"></span>
-                    <div class="toggle-switch"><input type="checkbox" id="remember-last-tab-toggle"><span
-                            class="slider"></span></div>
-                </label>
-            </div>
-
-            <div id="first-sound-controls" class="hidden">
-                <div id="first-sound-btn-container">
-                    <button id="set-source-btn" class="btn" data-locale="refreshSource" type="button"
-                        data-command-name="set-current-tab-source"></button>
-                    <button id="clear-source-btn" class="btn" type="button" data-locale-title="clearSource">☓</button>
+        <div class="container lists-panel hidden">
+            <header class="header">
+                <div class="header-icon-title">
+                    <span id="exceptions-title-text" style="font-size: 13px; font-weight: 700;" data-locale="exceptionsTitle"></span>
                 </div>
-                <div id="current-sound-source-display" class="current-sound-source-display"></div>
-                <div class="expandable-content hidden">
-                    <label class="show-all-tabs-label" data-locale-title="showAllTabsDesc"><input type="checkbox" id="show-all-tabs-first-sound"><span
-                            data-locale="showAllTabs"></span></label>
-                    <ul id="first-sound-tabs-list"></ul>
+                <button id="close-lists-btn" class="close-lists-btn" type="button">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+            </header>
+            
+            <div class="lists-content">
+                <div class="exception-modes-section">
+                    <span class="section-title" data-locale="selectExceptionModes"></span>
+                    <div class="mode-checkboxes">
+                        <label class="mode-checkbox-label">
+                            <input type="checkbox" id="exc-mode-active" value="active">
+                            <span data-locale="modeActive"></span>
+                        </label>
+                        <label class="mode-checkbox-label">
+                            <input type="checkbox" id="exc-mode-first-sound" value="first-sound">
+                            <span data-locale="modeFirstSound"></span>
+                        </label>
+                        <label class="mode-checkbox-label">
+                            <input type="checkbox" id="exc-mode-whitelist" value="whitelist">
+                            <span data-locale="modeWhitelist"></span>
+                        </label>
+                        <label class="mode-checkbox-label">
+                            <input type="checkbox" id="exc-mode-mute-new" value="mute-new">
+                            <span data-locale="modeMuteNew"></span>
+                        </label>
+                    </div>
                 </div>
-            </div>
 
-            <div id="whitelist-controls" class="hidden">
-                <div class="whitelist-header">
-                    <h4 data-locale="selectTabToUnmute"></h4>
-                    <button id="clear-whitelist-btn" class="btn" type="button"
-                        data-locale-title="clearSource">☓</button>
+                <div class="list-section">
+                    <div class="list-section-header">
+                        <label for="always-allow-textarea" class="section-title" data-locale="alwaysAllow"></label>
+                        <button id="clear-always-allow-btn" class="clear-list-btn" type="button">☓</button>
+                    </div>
+                    <textarea id="always-allow-textarea" data-locale-placeholder="textareaPlaceholder" spellcheck="false"></textarea>
                 </div>
-                <div class="expandable-content">
-                    <label class="show-all-tabs-label" data-locale-title="showAllTabsDesc"><input type="checkbox" id="show-all-tabs-whitelist"><span
-                            data-locale="showAllTabs"></span></label>
-                    <ul id="audible-tabs-list"></ul>
+
+                <div class="list-section">
+                    <div class="list-section-header">
+                        <label for="always-block-textarea" class="section-title" data-locale="alwaysBlock"></label>
+                        <button id="clear-always-block-btn" class="clear-list-btn" type="button">☓</button>
+                    </div>
+                    <textarea id="always-block-textarea" data-locale-placeholder="textareaPlaceholder" spellcheck="false"></textarea>
+                </div>
+
+                <div class="lists-footer">
+                    <button id="save-lists-btn" class="btn save-btn" data-locale="saveButtonText" type="button"></button>
                 </div>
             </div>
         </div>
-        <button id="expand-settings-btn" class="btn expand-btn hidden"
-            data-locale-title="expandOptionsTooltip">▼</button>
     </div>
     <script src="popup.js"></script>
 </body>

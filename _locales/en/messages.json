@@ -85,5 +85,32 @@
   },
   "defaultIsOn": {
     "message": "Default is ON"
+  },
+  "editLists": {
+    "message": "Edit lists"
+  },
+  "exceptionsTitle": {
+    "message": "Exceptions"
+  },
+  "selectExceptionModes": {
+    "message": "Apply in modes:"
+  },
+  "alwaysAllow": {
+    "message": "Always Allow Sound"
+  },
+  "alwaysBlock": {
+    "message": "Always Block Sound"
+  },
+  "textareaPlaceholder": {
+    "message": "example.com\nmusic.youtube.com"
+  },
+  "saveButtonText": {
+    "message": "Save"
+  },
+  "addToAllow": {
+    "message": "Add current site to Allow list"
+  },
+  "addToBlock": {
+    "message": "Add current site to Block list"
   }
 }

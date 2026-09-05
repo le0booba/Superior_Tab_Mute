@@ -28,13 +28,50 @@ document.addEventListener('DOMContentLoaded', () => {
         rememberOptionWrapper: document.getElementById('remember-option-wrapper'),
         rememberLastTabToggle: document.getElementById('remember-last-tab-toggle'),
         expandSettingsBtn: document.getElementById('expand-settings-btn'),
-        expandableContentFS: document.querySelector('#first-sound-controls .expandable-content')
+        expandableContentFS: document.querySelector('#first-sound-controls .expandable-content'),
+        editListsBtn: document.getElementById('edit-lists-btn'),
+        closeListsBtn: document.getElementById('close-lists-btn'),
+        listsPanel: document.querySelector('.lists-panel'),
+        alwaysAllowTextarea: document.getElementById('always-allow-textarea'),
+        alwaysBlockTextarea: document.getElementById('always-block-textarea'),
+        clearAlwaysAllowBtn: document.getElementById('clear-always-allow-btn'),
+        clearAlwaysBlockBtn: document.getElementById('clear-always-block-btn'),
+        quickAllowBtn: document.getElementById('quick-allow-btn'),
+        quickBlockBtn: document.getElementById('quick-block-btn'),
+        excModeActive: document.getElementById('exc-mode-active'),
+        excModeFirstSound: document.getElementById('exc-mode-first-sound'),
+        excModeWhitelist: document.getElementById('exc-mode-whitelist'),
+        excModeMuteNew: document.getElementById('exc-mode-mute-new'),
+        saveListsBtn: document.getElementById('save-lists-btn')
     };
 
     const STORAGE_KEYS = {
-        sync: { mode: 'active', isExtensionEnabled: true, isAllMuted: false, rememberLastTab: false, defaultMode: null, defaultMuteAll: false },
+        sync: {
+            mode: 'active',
+            isExtensionEnabled: true,
+            isAllMuted: false,
+            rememberLastTab: false,
+            defaultMode: null,
+            defaultMuteAll: false,
+            exceptionModes: ['active', 'first-sound', 'whitelist', 'mute-new']
+        },
         session: { firstAudibleTabId: null, whitelistedTabId: null, expansionStates: {} },
-        local: { showAllTabsFirstSound: false, showAllTabsWhitelist: false, stm_lang: chrome.i18n.getUILanguage().startsWith('ru') ? 'ru' : 'en' }
+        local: {
+            showAllTabsFirstSound: false,
+            showAllTabsWhitelist: false,
+            stm_lang: chrome.i18n.getUILanguage().startsWith('ru') ? 'ru' : 'en',
+            isListsOpen: false,
+            alwaysAllowList: [],
+            alwaysBlockList: []
+        }
+    };
+
+    const debounce = (func, delay) => {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func(...args), delay);
+        };
     };
 
     const loadLocales = async () => {
@@ -69,9 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const applyLocalization = () => {
-        document.querySelectorAll('[data-locale], [data-locale-title]').forEach(el => {
+        document.querySelectorAll('[data-locale], [data-locale-title], [data-locale-placeholder]').forEach(el => {
             if (el.dataset.locale) el.innerHTML = getLocaleString(el.dataset.locale);
             if (el.dataset.localeTitle) el.title = getLocaleString(el.dataset.localeTitle);
+            if (el.dataset.localePlaceholder) el.placeholder = getLocaleString(el.dataset.localePlaceholder);
         });
         DOM.versionInfo.innerHTML = `<strong>${MANIFEST.name}</strong> <span class="version-text">v${MANIFEST.version}</span>`;
         DOM.authorInfo.textContent = `${getLocaleString('by')} badrenton`;
@@ -228,6 +266,42 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.setDefaultMuteAllBtn.title = isActive ? getLocaleString('defaultIsOn') : getLocaleString('setDefaultToOn');
     };
 
+    const updateQuickButtonsState = async (settings) => {
+        const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        let host = null;
+        if (activeTab?.url && !/^(chrome|chrome-extension|edge):\/\//.test(activeTab.url)) {
+            try {
+                host = new URL(activeTab.url).hostname.toLowerCase();
+                if (host.startsWith('www.')) host = host.slice(4);
+            } catch { }
+        }
+
+        if (host) {
+            const isAllowed = (settings.alwaysAllowList || []).includes(host);
+            const isBlocked = (settings.alwaysBlockList || []).includes(host);
+            DOM.quickAllowBtn.classList.toggle('active', isAllowed);
+            DOM.quickBlockBtn.classList.toggle('active', isBlocked);
+        } else {
+            DOM.quickAllowBtn.classList.remove('active');
+            DOM.quickBlockBtn.classList.remove('active');
+        }
+    };
+
+    const forcePopupResize = () => {
+        const body = document.body;
+        const root = document.documentElement;
+        const currentWidth = body.classList.contains('lists-open') ? '500px' : '250px';
+        root.style.width = currentWidth;
+        root.style.minWidth = currentWidth;
+        root.style.maxWidth = currentWidth;
+        body.style.width = currentWidth;
+        body.style.minWidth = currentWidth;
+        body.style.maxWidth = currentWidth;
+        body.style.display = 'none';
+        void body.offsetHeight;
+        body.style.display = '';
+    };
+
     const updateAllUI = async (settings) => {
         DOM.masterToggle.checked = settings.isExtensionEnabled;
         DOM.muteAllToggle.checked = settings.isAllMuted;
@@ -240,6 +314,27 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDefaultModeUI(settings.defaultMode);
         updateDefaultMuteAllUI(settings.defaultMuteAll);
         await updateControlSectionsVisibility(settings);
+
+        const wasListsOpen = document.body.classList.contains('lists-open');
+        document.body.classList.toggle('lists-open', !!settings.isListsOpen);
+        DOM.listsPanel.classList.toggle('hidden', !settings.isListsOpen);
+        if (wasListsOpen !== !!settings.isListsOpen) {
+            forcePopupResize();
+        }
+
+        if (document.activeElement !== DOM.alwaysAllowTextarea) {
+            DOM.alwaysAllowTextarea.value = (settings.alwaysAllowList || []).join('\n');
+        }
+        if (document.activeElement !== DOM.alwaysBlockTextarea) {
+            DOM.alwaysBlockTextarea.value = (settings.alwaysBlockList || []).join('\n');
+        }
+
+        DOM.excModeActive.checked = (settings.exceptionModes || []).includes('active');
+        DOM.excModeFirstSound.checked = (settings.exceptionModes || []).includes('first-sound');
+        DOM.excModeWhitelist.checked = (settings.exceptionModes || []).includes('whitelist');
+        DOM.excModeMuteNew.checked = (settings.exceptionModes || []).includes('mute-new');
+
+        await updateQuickButtonsState(settings);
     };
 
     const handleStorageChange = async () => {
@@ -312,6 +407,116 @@ document.addEventListener('DOMContentLoaded', () => {
         await refreshTabLists(settings);
     };
 
+    const cleanPattern = (pattern) => {
+        pattern = pattern.trim().toLowerCase();
+        if (!pattern) return '';
+
+        if (pattern.includes('://')) {
+            pattern = pattern.split('://')[1];
+        }
+        pattern = pattern.split(/[/?#]/)[0];
+
+        pattern = pattern.replace(/[^\p{L}\p{N}\.*\-_]/gu, '');
+
+        pattern = pattern.replace(/\.{2,}/g, '.');
+
+        if (pattern.startsWith('*') && !pattern.startsWith('*.')) {
+            pattern = '*.' + pattern.slice(1);
+        }
+        if (pattern.startsWith('.*')) {
+            pattern = '*.' + pattern.slice(2);
+        }
+        if (pattern.endsWith('*') && !pattern.endsWith('.*')) {
+            pattern = pattern.slice(0, -1) + '.*';
+        }
+
+        if (pattern.startsWith('www.')) {
+            pattern = pattern.slice(4);
+        }
+        if (pattern.startsWith('*.www.')) {
+            pattern = '*.' + pattern.slice(6);
+        }
+
+        return pattern;
+    };
+
+    const onSaveExceptions = () => {
+        const allowRaw = DOM.alwaysAllowTextarea.value.replace(/,/g, '\n');
+        const blockRaw = DOM.alwaysBlockTextarea.value.replace(/,/g, '\n');
+
+        const allowList = allowRaw.split('\n').map(cleanPattern).filter(Boolean);
+        const blockList = blockRaw.split('\n').map(cleanPattern).filter(Boolean);
+
+        DOM.alwaysAllowTextarea.value = allowList.join('\n');
+        DOM.alwaysBlockTextarea.value = blockList.join('\n');
+
+        const modes = [];
+        if (DOM.excModeActive.checked) modes.push('active');
+        if (DOM.excModeFirstSound.checked) modes.push('first-sound');
+        if (DOM.excModeWhitelist.checked) modes.push('whitelist');
+        if (DOM.excModeMuteNew.checked) modes.push('mute-new');
+
+        Promise.all([
+            chrome.storage.local.set({
+                alwaysAllowList: allowList,
+                alwaysBlockList: blockList
+            }),
+            chrome.storage.sync.set({
+                exceptionModes: modes
+            })
+        ]).then(() => {
+            const originalText = DOM.saveListsBtn.innerHTML;
+            DOM.saveListsBtn.innerHTML = getLocaleString('resetSuccess');
+            DOM.saveListsBtn.classList.add('success');
+            setTimeout(() => {
+                DOM.saveListsBtn.innerHTML = originalText;
+                DOM.saveListsBtn.classList.remove('success');
+            }, 1500);
+        });
+    };
+
+    const saveExceptionModes = () => {
+        const modes = [];
+        if (DOM.excModeActive.checked) modes.push('active');
+        if (DOM.excModeFirstSound.checked) modes.push('first-sound');
+        if (DOM.excModeWhitelist.checked) modes.push('whitelist');
+        if (DOM.excModeMuteNew.checked) modes.push('mute-new');
+        chrome.storage.sync.set({ exceptionModes: modes });
+    };
+
+    const onQuickException = async (listKey) => {
+        const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!activeTab?.url || /^(chrome|chrome-extension|edge):\/\//.test(activeTab.url)) return;
+        let host;
+        try {
+            host = new URL(activeTab.url).hostname.toLowerCase();
+        } catch { return; }
+        if (host.startsWith('www.')) host = host.slice(4);
+        if (!host) return;
+
+        const oppositeKey = listKey === 'alwaysAllowList' ? 'alwaysBlockList' : 'alwaysAllowList';
+        const data = await chrome.storage.local.get({ [listKey]: [], [oppositeKey]: [] });
+        let targetList = data[listKey] || [];
+        let oppositeList = data[oppositeKey] || [];
+
+        if (targetList.includes(host)) {
+            targetList = targetList.filter(item => item !== host);
+        } else {
+            targetList.push(host);
+            if (oppositeList.includes(host)) {
+                oppositeList = oppositeList.filter(item => item !== host);
+            }
+        }
+
+        await chrome.storage.local.set({
+            [listKey]: targetList,
+            [oppositeKey]: oppositeList
+        });
+
+        DOM.alwaysAllowTextarea.value = (listKey === 'alwaysAllowList' ? targetList : oppositeList).join('\n');
+        DOM.alwaysBlockTextarea.value = (listKey === 'alwaysBlockList' ? targetList : oppositeList).join('\n');
+    };
+
     const bindEventListeners = () => {
         DOM.masterToggle.addEventListener('change', e => chrome.storage.sync.set({ isExtensionEnabled: e.target.checked }));
         DOM.muteAllToggle.addEventListener('change', e => chrome.storage.sync.set({ isAllMuted: e.target.checked }));
@@ -335,6 +540,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.target.id === 'set-default-mute-all' ? onSetDefaultMuteAll() : onSetDefaultMode(e);
             }
         });
+        DOM.editListsBtn.addEventListener('click', async () => {
+            const { isListsOpen } = await chrome.storage.local.get({ isListsOpen: false });
+            await chrome.storage.local.set({ isListsOpen: !isListsOpen });
+        });
+        DOM.quickAllowBtn.addEventListener('click', () => onQuickException('alwaysAllowList'));
+        DOM.quickBlockBtn.addEventListener('click', () => onQuickException('alwaysBlockList'));
+        DOM.closeListsBtn.addEventListener('click', async () => {
+            await chrome.storage.local.set({ isListsOpen: false });
+        });
+        DOM.saveListsBtn.addEventListener('click', onSaveExceptions);
+        DOM.clearAlwaysAllowBtn.addEventListener('click', () => { DOM.alwaysAllowTextarea.value = ''; });
+        DOM.clearAlwaysBlockBtn.addEventListener('click', () => { DOM.alwaysBlockTextarea.value = ''; });
+        DOM.excModeActive.addEventListener('change', saveExceptionModes);
+        DOM.excModeFirstSound.addEventListener('change', saveExceptionModes);
+        DOM.excModeWhitelist.addEventListener('change', saveExceptionModes);
+        DOM.excModeMuteNew.addEventListener('change', saveExceptionModes);
         chrome.storage.onChanged.addListener(handleStorageChange);
     };
 
@@ -345,6 +566,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('lang-en').classList.toggle('active', currentLanguage === 'en');
         document.getElementById('lang-ru').classList.toggle('active', currentLanguage === 'ru');
         applyLocalization();
+
+        settings.isListsOpen = false;
+        await chrome.storage.local.set({ isListsOpen: false });
+
         await updateAllUI(settings);
         await updateShortcutTooltips();
         bindEventListeners();

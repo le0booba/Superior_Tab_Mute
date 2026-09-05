@@ -25,7 +25,11 @@ body {
     color: var(--text-primary);
     margin: 0;
     opacity: 0;
-    transition: opacity var(--transition-normal);
+    transition: opacity var(--transition-normal), width var(--transition-normal);
+}
+
+body.lists-open {
+    width: 500px;
 }
 
 .container {
@@ -514,4 +518,251 @@ input[type="radio"] {
     margin-top: 8px;
     padding: 2px 4px;
     font-size: 14px;
+}
+
+.main-wrapper {
+    display: flex;
+    width: 250px;
+    transition: width var(--transition-normal);
+    overflow: hidden;
+}
+
+body.lists-open .main-wrapper {
+    width: 500px;
+}
+
+.main-panel,
+.lists-panel {
+    width: 250px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.lists-panel {
+    border-left: 1px solid var(--border-color);
+    background: var(--bg-main);
+    display: flex;
+    flex-direction: column;
+}
+
+.lists-panel.hidden {
+    display: none;
+}
+
+.top-bar-divider {
+    width: 1px;
+    height: 16px;
+    background-color: var(--border-color);
+    flex-shrink: 0;
+}
+
+.edit-lists-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.edit-lists-btn svg circle {
+    transition: fill var(--transition-fast);
+}
+
+.edit-lists-btn:hover svg circle {
+    fill: var(--accent-secondary-hover);
+}
+
+.exception-btns-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.quick-exception-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity var(--transition-fast), filter var(--transition-fast);
+    opacity: 0.45;
+    filter: grayscale(100%);
+}
+
+.quick-exception-btn:hover {
+    opacity: 0.75;
+}
+
+.quick-exception-btn.active {
+    opacity: 1;
+    filter: grayscale(0%);
+}
+
+.quick-exception-btn.active:hover {
+    opacity: 0.85;
+}
+
+.quick-exception-btn svg circle {
+    transition: fill var(--transition-fast);
+}
+
+.close-lists-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--transition-fast);
+}
+
+.close-lists-btn:hover {
+    color: #e67e22;
+}
+
+.lists-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 8px;
+}
+
+.section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    display: block;
+    font-family: "Verdana", sans-serif;
+    cursor: default;
+}
+
+#exceptions-title-text {
+    cursor: default;
+}
+
+.exception-modes-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mode-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--bg-secondary);
+    padding: 6px;
+    border-radius: 4px;
+}
+
+.mode-checkbox-label {
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+    cursor: pointer;
+    gap: 6px;
+}
+
+.mode-checkbox-label input {
+    margin: 0;
+}
+
+.mode-checkbox-label span {
+    font-size: 11px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.list-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.list-section textarea {
+    width: 100%;
+    height: 80px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-primary);
+    padding: 6px;
+    box-sizing: border-box;
+    resize: none;
+    font-size: 11px;
+    font-family: monaco, "andale mono", "lucida console", "courier new", monospace;
+    line-height: 1.4;
+    transition: border-color var(--transition-fast);
+}
+
+.list-section textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.list-section textarea::-webkit-scrollbar {
+    width: 6px;
+}
+
+.list-section textarea::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+.list-section textarea::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.list-section textarea::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+.lists-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.save-btn {
+    width: 100%;
+    height: 28px;
+    box-sizing: border-box;
+    background: var(--accent-primary);
+}
+
+.save-btn.success {
+    background: var(--accent-success);
+    cursor: default;
+}
+
+.list-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.list-section-header .section-title {
+    margin-bottom: 0;
+}
+
+.clear-list-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 2px 4px;
+    line-height: 1;
+    transition: color var(--transition-fast);
+}
+
+.clear-list-btn:hover {
+    color: var(--accent-error);
 }

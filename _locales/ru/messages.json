@@ -85,5 +85,32 @@
   },
   "defaultIsOn": {
     "message": "По умолчанию ВКЛ"
+  },
+  "editLists": {
+    "message": "Редактировать списки"
+  },
+  "exceptionsTitle": {
+    "message": "Исключения"
+  },
+  "selectExceptionModes": {
+    "message": "Применять в режимах:"
+  },
+  "alwaysAllow": {
+    "message": "Всегда разрешать звук"
+  },
+  "alwaysBlock": {
+    "message": "Всегда запрещать звук"
+  },
+  "textareaPlaceholder": {
+    "message": "example.com\nmusic.youtube.com"
+  },
+  "saveButtonText": {
+    "message": "Сохранить"
+  },
+  "addToAllow": {
+    "message": "Добавить сайт в список разрешённых"
+  },
+  "addToBlock": {
+    "message": "Добавить сайт в список запрещённых"
   }
 }
