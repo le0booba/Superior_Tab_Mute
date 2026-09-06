@@ -3,6 +3,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let LOCALES = { en: {}, ru: {} };
     let currentLanguage = 'en';
 
+    const RESERVED_WORDS = new Set([
+        'com', 'org', 'net', 'edu', 'gov', 'mil', 'int', 'biz', 'info', 'name', 'pro',
+        'aero', 'coop', 'museum', 'app', 'dev', 'io', 'ai', 'co', 'ru', 'en', 'uk',
+        'us', 'de', 'fr', 'jp', 'cn', 'eu', 'www', 'mail', 'web', 'api', 'cdn', 'ftp',
+        'ns', 'admin', 'blog', 'news', 'shop', 'store', 'test', 'local', 'localhost',
+        'stream', 'player'
+    ]);
+
     const DOM = {
         controlsWrapper: document.getElementById('controls-wrapper'),
         firstSoundControls: document.getElementById('first-sound-controls'),
@@ -42,7 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
         excModeFirstSound: document.getElementById('exc-mode-first-sound'),
         excModeWhitelist: document.getElementById('exc-mode-whitelist'),
         excModeMuteNew: document.getElementById('exc-mode-mute-new'),
-        saveListsBtn: document.getElementById('save-lists-btn')
+        saveListsBtn: document.getElementById('save-lists-btn'),
+        listsValidationError: document.getElementById('lists-validation-error')
     };
 
     const STORAGE_KEYS = {
@@ -66,12 +75,127 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const debounce = (func, delay) => {
-        let timeout;
-        return (...args) => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func(...args), delay);
-        };
+    const decodePunycode = (input) => {
+        if (!input.includes('xn--')) return input;
+        return input.split('.').map(part => {
+            if (!part.startsWith('xn--')) return part;
+            let str = part.slice(4);
+            let n = 128;
+            let i = 0;
+            let bias = 72;
+            let output = [];
+
+            let delim = str.lastIndexOf('-');
+            if (delim >= 0) {
+                for (let j = 0; j < delim; j++) {
+                    output.push(str.charCodeAt(j));
+                }
+                str = str.slice(delim + 1);
+            }
+
+            let pos = 0;
+            while (pos < str.length) {
+                let oldi = i;
+                let w = 1;
+                for (let k = 36; ; k += 36) {
+                    let digit = str.charCodeAt(pos++);
+                    digit = digit >= 97 && digit <= 122 ? digit - 97 :
+                        digit >= 48 && digit <= 57 ? digit - 22 :
+                            digit >= 65 && digit <= 90 ? digit - 65 : 36;
+                    i += digit * w;
+                    let t = k <= bias ? 1 : k >= bias + 26 ? 26 : k - bias;
+                    if (digit < t) break;
+                    w *= (36 - t);
+                }
+                let len = output.length + 1;
+                let delta = i - oldi;
+                delta = oldi === 0 ? Math.floor(delta / 700) : Math.floor(delta / 2);
+                delta += Math.floor(delta / len);
+                let k = 0;
+                while (delta > 455) {
+                    delta = Math.floor(delta / 35);
+                    k += 36;
+                }
+                bias = k + Math.floor((36 * delta) / (delta + 38));
+                n += Math.floor(i / len);
+                i %= len;
+                output.splice(i, 0, n);
+                i++;
+            }
+            return String.fromCodePoint(...output);
+        }).join('.');
+    };
+
+    const normalizeHost = (host) => {
+        host = host.toLowerCase().trim();
+        host = decodePunycode(host);
+        if (host.startsWith('www.')) {
+            host = host.slice(4);
+        }
+        return host;
+    };
+
+    const getNonTldHost = (host) => {
+        const parts = host.split('.');
+        if (parts.length <= 1) return host;
+        const last = parts[parts.length - 1];
+        const prev = parts[parts.length - 2];
+        const commonSecondLevels = ['co', 'com', 'org', 'net', 'gov', 'edu', 'ac', 'mil'];
+        if (parts.length >= 3 && commonSecondLevels.includes(prev) && last.length === 2) {
+            return parts.slice(0, -2).join('.');
+        }
+        return parts.slice(0, -1).join('.');
+    };
+
+    const matchPattern = (host, pattern) => {
+        host = normalizeHost(host);
+        pattern = pattern.toLowerCase().trim();
+        if (!pattern) return false;
+
+        if (pattern.startsWith('www.')) {
+            pattern = pattern.slice(4);
+        }
+        if (pattern.startsWith('*.www.')) {
+            pattern = '*.' + pattern.slice(6);
+        }
+
+        const isSingleWord = !pattern.includes('.') && !pattern.includes('*');
+        if (isSingleWord) {
+            if (pattern.length < 2 || RESERVED_WORDS.has(pattern)) {
+                return false;
+            }
+            const nonTld = getNonTldHost(host);
+            const labels = nonTld.split('.');
+            return labels.includes(pattern);
+        }
+
+        if (pattern.startsWith('*.')) {
+            const domain = pattern.slice(2);
+            return host === domain || host.endsWith('.' + domain);
+        }
+
+        if (pattern.endsWith('.*')) {
+            const domainPrefix = pattern.slice(0, -2);
+            const nonTld = getNonTldHost(host);
+            return nonTld === domainPrefix || nonTld.endsWith('.' + domainPrefix);
+        }
+
+        if (host === pattern || host.endsWith('.' + pattern)) {
+            return true;
+        }
+
+        return false;
+    };
+
+    const matchesList = (hostOrUrl, list) => {
+        if (!hostOrUrl || !list || !Array.isArray(list)) return false;
+        let host = hostOrUrl;
+        if (hostOrUrl.includes('://')) {
+            try {
+                host = new URL(hostOrUrl).hostname;
+            } catch { }
+        }
+        return list.some(pattern => matchPattern(host, pattern));
     };
 
     const loadLocales = async () => {
@@ -277,8 +401,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (host) {
-            const isAllowed = (settings.alwaysAllowList || []).includes(host);
-            const isBlocked = (settings.alwaysBlockList || []).includes(host);
+            const isAllowed = matchesList(host, settings.alwaysAllowList);
+            const isBlocked = matchesList(host, settings.alwaysBlockList);
             DOM.quickAllowBtn.classList.toggle('active', isAllowed);
             DOM.quickBlockBtn.classList.toggle('active', isBlocked);
         } else {
@@ -324,10 +448,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (document.activeElement !== DOM.alwaysAllowTextarea) {
             DOM.alwaysAllowTextarea.value = (settings.alwaysAllowList || []).join('\n');
+            DOM.alwaysAllowTextarea.classList.remove('has-error');
         }
         if (document.activeElement !== DOM.alwaysBlockTextarea) {
             DOM.alwaysBlockTextarea.value = (settings.alwaysBlockList || []).join('\n');
+            DOM.alwaysBlockTextarea.classList.remove('has-error');
         }
+
+        DOM.listsValidationError.classList.add('hidden');
+        DOM.listsValidationError.textContent = '';
 
         DOM.excModeActive.checked = (settings.exceptionModes || []).includes('active');
         DOM.excModeFirstSound.checked = (settings.exceptionModes || []).includes('first-sound');
@@ -407,48 +536,88 @@ document.addEventListener('DOMContentLoaded', () => {
         await refreshTabLists(settings);
     };
 
-    const cleanPattern = (pattern) => {
-        pattern = pattern.trim().toLowerCase();
+    const sanitizeUrlCandidate = (raw) => {
+        let pattern = raw.trim().toLowerCase();
         if (!pattern) return '';
-
         if (pattern.includes('://')) {
             pattern = pattern.split('://')[1];
         }
         pattern = pattern.split(/[/?#]/)[0];
-
-        pattern = pattern.replace(/[^\p{L}\p{N}\.*\-_]/gu, '');
-
-        pattern = pattern.replace(/\.{2,}/g, '.');
-
-        if (pattern.startsWith('*') && !pattern.startsWith('*.')) {
-            pattern = '*.' + pattern.slice(1);
-        }
-        if (pattern.startsWith('.*')) {
-            pattern = '*.' + pattern.slice(2);
-        }
-        if (pattern.endsWith('*') && !pattern.endsWith('.*')) {
-            pattern = pattern.slice(0, -1) + '.*';
-        }
-
         if (pattern.startsWith('www.')) {
             pattern = pattern.slice(4);
         }
         if (pattern.startsWith('*.www.')) {
             pattern = '*.' + pattern.slice(6);
         }
-
         return pattern;
     };
 
+    const validatePattern = (pattern) => {
+        if (!pattern) return { valid: false };
+
+        const singleWordRegex = /^[\p{L}\p{N}-]+$/u;
+        if (singleWordRegex.test(pattern)) {
+            if (pattern.length < 2 || RESERVED_WORDS.has(pattern)) {
+                return { valid: false, reason: 'reserved' };
+            }
+            return { valid: true, pattern };
+        }
+
+        const domainWildcardRegex = /^(\*\.)?[\p{L}\p{N}-]+(\.[\p{L}\p{N}-]+)+$/u;
+        if (domainWildcardRegex.test(pattern)) {
+            return { valid: true, pattern };
+        }
+
+        const tldWildcardRegex = /^([\p{L}\p{N}-]+\.)+\*$/u;
+        if (tldWildcardRegex.test(pattern)) {
+            return { valid: true, pattern };
+        }
+
+        return { valid: false, reason: 'invalid' };
+    };
+
+    const parseAndValidateText = (text) => {
+        const lines = text.replace(/,/g, '\n').split('\n');
+        const validList = [];
+        const invalidLines = [];
+
+        lines.forEach(rawLine => {
+            const trimmed = rawLine.trim();
+            if (!trimmed) return;
+            const cleaned = sanitizeUrlCandidate(trimmed);
+            const result = validatePattern(cleaned);
+            if (result.valid) {
+                if (!validList.includes(result.pattern)) {
+                    validList.push(result.pattern);
+                }
+            } else {
+                invalidLines.push(trimmed);
+            }
+        });
+
+        return { validList, invalidLines };
+    };
+
     const onSaveExceptions = () => {
-        const allowRaw = DOM.alwaysAllowTextarea.value.replace(/,/g, '\n');
-        const blockRaw = DOM.alwaysBlockTextarea.value.replace(/,/g, '\n');
+        const allowParsed = parseAndValidateText(DOM.alwaysAllowTextarea.value);
+        const blockParsed = parseAndValidateText(DOM.alwaysBlockTextarea.value);
 
-        const allowList = allowRaw.split('\n').map(cleanPattern).filter(Boolean);
-        const blockList = blockRaw.split('\n').map(cleanPattern).filter(Boolean);
+        DOM.alwaysAllowTextarea.classList.toggle('has-error', allowParsed.invalidLines.length > 0);
+        DOM.alwaysBlockTextarea.classList.toggle('has-error', blockParsed.invalidLines.length > 0);
 
-        DOM.alwaysAllowTextarea.value = allowList.join('\n');
-        DOM.alwaysBlockTextarea.value = blockList.join('\n');
+        const allInvalid = [...allowParsed.invalidLines, ...blockParsed.invalidLines];
+        if (allInvalid.length > 0) {
+            const errorTemplate = getLocaleString('validationError');
+            DOM.listsValidationError.textContent = `${errorTemplate}: ${allInvalid.slice(0, 3).join(', ')}${allInvalid.length > 3 ? '...' : ''}`;
+            DOM.listsValidationError.classList.remove('hidden');
+            return;
+        }
+
+        DOM.listsValidationError.classList.add('hidden');
+        DOM.listsValidationError.textContent = '';
+
+        DOM.alwaysAllowTextarea.value = allowParsed.validList.join('\n');
+        DOM.alwaysBlockTextarea.value = blockParsed.validList.join('\n');
 
         const modes = [];
         if (DOM.excModeActive.checked) modes.push('active');
@@ -458,8 +627,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Promise.all([
             chrome.storage.local.set({
-                alwaysAllowList: allowList,
-                alwaysBlockList: blockList
+                alwaysAllowList: allowParsed.validList,
+                alwaysBlockList: blockParsed.validList
             }),
             chrome.storage.sync.set({
                 exceptionModes: modes
@@ -499,13 +668,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let targetList = data[listKey] || [];
         let oppositeList = data[oppositeKey] || [];
 
-        if (targetList.includes(host)) {
-            targetList = targetList.filter(item => item !== host);
+        const isCurrentlyMatched = matchesList(host, targetList);
+
+        if (isCurrentlyMatched) {
+            targetList = targetList.filter(pattern => !matchPattern(host, pattern));
         } else {
             targetList.push(host);
-            if (oppositeList.includes(host)) {
-                oppositeList = oppositeList.filter(item => item !== host);
-            }
+            oppositeList = oppositeList.filter(pattern => !matchPattern(host, pattern));
         }
 
         await chrome.storage.local.set({
@@ -550,8 +719,24 @@ document.addEventListener('DOMContentLoaded', () => {
             await chrome.storage.local.set({ isListsOpen: false });
         });
         DOM.saveListsBtn.addEventListener('click', onSaveExceptions);
-        DOM.clearAlwaysAllowBtn.addEventListener('click', () => { DOM.alwaysAllowTextarea.value = ''; });
-        DOM.clearAlwaysBlockBtn.addEventListener('click', () => { DOM.alwaysBlockTextarea.value = ''; });
+        DOM.clearAlwaysAllowBtn.addEventListener('click', () => {
+            DOM.alwaysAllowTextarea.value = '';
+            DOM.alwaysAllowTextarea.classList.remove('has-error');
+            DOM.listsValidationError.classList.add('hidden');
+        });
+        DOM.clearAlwaysBlockBtn.addEventListener('click', () => {
+            DOM.alwaysBlockTextarea.value = '';
+            DOM.alwaysBlockTextarea.classList.remove('has-error');
+            DOM.listsValidationError.classList.add('hidden');
+        });
+        DOM.alwaysAllowTextarea.addEventListener('input', () => {
+            DOM.alwaysAllowTextarea.classList.remove('has-error');
+            DOM.listsValidationError.classList.add('hidden');
+        });
+        DOM.alwaysBlockTextarea.addEventListener('input', () => {
+            DOM.alwaysBlockTextarea.classList.remove('has-error');
+            DOM.listsValidationError.classList.add('hidden');
+        });
         DOM.excModeActive.addEventListener('change', saveExceptionModes);
         DOM.excModeFirstSound.addEventListener('change', saveExceptionModes);
         DOM.excModeWhitelist.addEventListener('change', saveExceptionModes);

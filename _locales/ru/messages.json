@@ -102,7 +102,7 @@
     "message": "Всегда запрещать звук"
   },
   "textareaPlaceholder": {
-    "message": "example.com\nmusic.youtube.com"
+    "message": "youtube.com\n*.spotify.com\ntwitch.*"
   },
   "saveButtonText": {
     "message": "Сохранить"
@@ -112,5 +112,8 @@
   },
   "addToBlock": {
     "message": "Добавить сайт в список запрещённых"
+  },
+  "validationError": {
+    "message": "Недопустимый домен или слово"
   }
 }

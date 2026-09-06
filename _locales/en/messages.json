@@ -102,7 +102,7 @@
     "message": "Always Block Sound"
   },
   "textareaPlaceholder": {
-    "message": "example.com\nmusic.youtube.com"
+    "message": "youtube.com\n*.spotify.com\ntwitch.*"
   },
   "saveButtonText": {
     "message": "Save"
@@ -112,5 +112,8 @@
   },
   "addToBlock": {
     "message": "Add current site to Block list"
+  },
+  "validationError": {
+    "message": "Invalid domain or pattern"
   }
 }

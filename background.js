@@ -13,6 +13,14 @@ const DEFAULT_SETTINGS = {
     exceptionModes: ['active', 'first-sound', 'whitelist', 'mute-new']
 };
 
+const RESERVED_WORDS = new Set([
+    'com', 'org', 'net', 'edu', 'gov', 'mil', 'int', 'biz', 'info', 'name', 'pro',
+    'aero', 'coop', 'museum', 'app', 'dev', 'io', 'ai', 'co', 'ru', 'en', 'uk',
+    'us', 'de', 'fr', 'jp', 'cn', 'eu', 'www', 'mail', 'web', 'api', 'cdn', 'ftp',
+    'ns', 'admin', 'blog', 'news', 'shop', 'store', 'test', 'local', 'localhost',
+    'stream', 'player'
+]);
+
 let cachedSettings = { ...DEFAULT_SETTINGS };
 let settingsPromise = null;
 let currentIconState = '';
@@ -108,7 +116,7 @@ const decodePunycode = (input) => {
         let i = 0;
         let bias = 72;
         let output = [];
-        
+
         let delim = str.lastIndexOf('-');
         if (delim >= 0) {
             for (let j = 0; j < delim; j++) {
@@ -116,7 +124,7 @@ const decodePunycode = (input) => {
             }
             str = str.slice(delim + 1);
         }
-        
+
         let pos = 0;
         while (pos < str.length) {
             let oldi = i;
@@ -124,7 +132,7 @@ const decodePunycode = (input) => {
             for (let k = 36; ; k += 36) {
                 let digit = str.charCodeAt(pos++);
                 digit = digit >= 97 && digit <= 122 ? digit - 97 :
-                        digit >= 48 && digit <= 57 ? digit - 22 :
+                    digit >= 48 && digit <= 57 ? digit - 22 :
                         digit >= 65 && digit <= 90 ? digit - 65 : 36;
                 i += digit * w;
                 let t = k <= bias ? 1 : k >= bias + 26 ? 26 : k - bias;
@@ -150,39 +158,6 @@ const decodePunycode = (input) => {
     }).join('.');
 };
 
-const cleanPattern = (pattern) => {
-    pattern = pattern.trim().toLowerCase();
-    if (!pattern) return '';
-
-    if (pattern.includes('://')) {
-        pattern = pattern.split('://')[1];
-    }
-    pattern = pattern.split(/[/?#]/)[0];
-
-    pattern = pattern.replace(/[^\p{L}\p{N}\.*\-_]/gu, '');
-
-    pattern = pattern.replace(/\.{2,}/g, '.');
-
-    if (pattern.startsWith('*') && !pattern.startsWith('*.')) {
-        pattern = '*.' + pattern.slice(1);
-    }
-    if (pattern.startsWith('.*')) {
-        pattern = '*.' + pattern.slice(2);
-    }
-    if (pattern.endsWith('*') && !pattern.endsWith('.*')) {
-        pattern = pattern.slice(0, -1) + '.*';
-    }
-
-    if (pattern.startsWith('www.')) {
-        pattern = pattern.slice(4);
-    }
-    if (pattern.startsWith('*.www.')) {
-        pattern = '*.' + pattern.slice(6);
-    }
-
-    return pattern;
-};
-
 const normalizeHost = (host) => {
     host = host.toLowerCase().trim();
     host = decodePunycode(host);
@@ -206,37 +181,52 @@ const getNonTldHost = (host) => {
 
 const matchPattern = (host, pattern) => {
     host = normalizeHost(host);
-    pattern = cleanPattern(pattern);
+    pattern = pattern.toLowerCase().trim();
     if (!pattern) return false;
+
+    if (pattern.startsWith('www.')) {
+        pattern = pattern.slice(4);
+    }
+    if (pattern.startsWith('*.www.')) {
+        pattern = '*.' + pattern.slice(6);
+    }
 
     const isSingleWord = !pattern.includes('.') && !pattern.includes('*');
     if (isSingleWord) {
+        if (pattern.length < 2 || RESERVED_WORDS.has(pattern)) {
+            return false;
+        }
         const nonTld = getNonTldHost(host);
-        return nonTld.split('.').includes(pattern);
+        const labels = nonTld.split('.');
+        return labels.includes(pattern);
     }
 
     if (pattern.startsWith('*.')) {
         const domain = pattern.slice(2);
         return host === domain || host.endsWith('.' + domain);
     }
+
     if (pattern.endsWith('.*')) {
-        const word = pattern.slice(0, -2);
-        return host === word || host.startsWith(word + '.');
+        const domainPrefix = pattern.slice(0, -2);
+        const nonTld = getNonTldHost(host);
+        return nonTld === domainPrefix || nonTld.endsWith('.' + domainPrefix);
     }
-    if (pattern === host) {
+
+    if (host === pattern || host.endsWith('.' + pattern)) {
         return true;
     }
+
     return false;
 };
 
-const matchesList = (url, list) => {
-    if (!url || !list || !Array.isArray(list)) return false;
-    let host = url;
-    try {
-        const parsedUrl = new URL(url);
-        host = parsedUrl.hostname;
-    } catch {}
-    
+const matchesList = (urlOrHost, list) => {
+    if (!urlOrHost || !list || !Array.isArray(list)) return false;
+    let host = urlOrHost;
+    if (urlOrHost.includes('://')) {
+        try {
+            host = new URL(urlOrHost).hostname;
+        } catch { }
+    }
     return list.some(pattern => matchPattern(host, pattern));
 };
 
