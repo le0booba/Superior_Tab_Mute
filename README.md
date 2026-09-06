@@ -68,11 +68,11 @@
 5. **Multi-Language Support**: Built-in English and Russian localization with seamless language switching, storing language preference locally while dynamically loading interface text from `_locales/` JSON files on popup initialization.
 
 **Performance Optimizations:**
-1. **Debounced Event Handling**: Core muting operations like `applyMutingRules()` are debounced with a 150ms delay to prevent redundant executions during rapid tab changes and updates, reducing CPU usage during intensive browsing sessions.
-2. **Parallel Async Operations**: Uses `Promise.all()` for simultaneous execution of independent operations in storage retrieval (`refreshCache()`), initialization routines (`handleStartup()`, `handleInstall()`), and bulk tab processing, significantly reducing overall latency.
-3. **Cached Settings Management**: Implements an in-memory settings cache (`cachedSettings`) with fast-path retrieval via `getSettings()` and a deduplication guard (`settingsPromise`) that coalesces concurrent refresh calls into a single storage read, minimizing redundant API calls during event-heavy scenarios.
-4. **Selective Tab Processing**: Filters manageable tabs upfront using `isManageableTab()` before any operations, excluding system pages to prevent unnecessary Chrome API calls across all muting operations.
-5. **Mute State Pre-check**: Before issuing any `chrome.tabs.update()` call, the current mute state of each tab is compared against the desired state — tabs already in the correct state are skipped entirely. This is applied in `setTabsMuted()` via a filter on `tab.mutedInfo?.muted`, eliminating a significant share of Chrome API calls on every rule application cycle.
+1. ⚡ **State Caching & Promise Reuse**: A centralized `cachedSettings` object initialized on startup completely eliminates redundant Chrome Storage reads during frequent tab events (updates, switching, opening/closing).
+2. ⏱️ **Debounced Rule Execution**: Employs a 150ms debounce (`debouncedApplyMutingRules`) to batch muting operations, avoiding API spam and browser lag during rapid tab switching.
+3. 🎯 **Targeted State-Check Updates**: Muting functions explicitly check a tab's current state (`tab.mutedInfo?.muted !== shouldMute`) before invoking `chrome.tabs.update`, preventing unnecessary API calls for tabs already in the intended state.
+4. 📦 **Strategic Storage Partitioning**: Storage is split appropriately across APIs: `sync` for lightweight user preferences, `local` for large exception lists (bypassing sync size quotas), and memory-only `session` for volatile tab IDs and source history.
+5. 🖼️ **Optimized DOM Rendering**: The popup utilizes `DocumentFragment` to batch DOM insertions when rendering tab lists, minimizing repaints and layout thrashing for a snappy UI.
 
 </details>
 
